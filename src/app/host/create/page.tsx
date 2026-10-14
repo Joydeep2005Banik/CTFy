@@ -37,6 +37,15 @@ function generatePin(): string {
   return result;
 }
 
+function formatToLocalDatetimeInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
 function CreateHostEventContent() {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -54,8 +63,8 @@ function CreateHostEventContent() {
     defaultValues: {
       title: "",
       pin_code: "CTF892",
-      start_time: "2026-10-13T10:00",
-      end_time: "2026-10-13T14:00",
+      start_time: "2026-10-14T20:00",
+      end_time: "2026-10-14T22:00",
       questions: [
         {
           prompt: "Web Exploitation: Inspect this target and find the hidden flag.",
@@ -68,12 +77,12 @@ function CreateHostEventContent() {
     },
   });
 
-  // Dynamically set client time once mounted
+  // Dynamically set client time once mounted in user's local timezone
   useEffect(() => {
     const start = new Date();
     const end = new Date(Date.now() + 4 * 3600 * 1000);
-    setValue("start_time", start.toISOString().slice(0, 16));
-    setValue("end_time", end.toISOString().slice(0, 16));
+    setValue("start_time", formatToLocalDatetimeInput(start));
+    setValue("end_time", formatToLocalDatetimeInput(end));
     setValue("pin_code", generatePin());
   }, [setValue]);
 
@@ -89,7 +98,15 @@ function CreateHostEventContent() {
     setSubmitting(true);
 
     try {
-      const res = await createEventAction(data);
+      // Explicitly convert user's local input dates to standard UTC ISO strings
+      // so PostgreSQL timestamptz stores the exact timestamp without timezone drift
+      const payload: EventFormValues = {
+        ...data,
+        start_time: new Date(data.start_time).toISOString(),
+        end_time: new Date(data.end_time).toISOString(),
+      };
+
+      const res = await createEventAction(payload);
       if (!res.success) {
         setSubmitError(res.error || "Failed to create event.");
         setSubmitting(false);
