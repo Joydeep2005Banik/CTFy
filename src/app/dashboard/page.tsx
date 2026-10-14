@@ -86,7 +86,7 @@ export default function DashboardPage() {
     <div className="flex-1 py-8 sm:py-12 cyber-grid">
       <div className="container mx-auto px-4 sm:px-6 max-w-6xl space-y-8">
         {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
+        <div className="border-b border-zinc-800/80 pb-6">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 uppercase tracking-wider mb-1">
               <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -99,23 +99,8 @@ export default function DashboardPage() {
               </span>
             </h1>
             <p className="text-sm text-zinc-400 mt-0.5">
-              Select an action to launch or participate in a competition.
+              Select an action below to launch or participate in a competition.
             </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/join">
-              <Button variant="outline" className="border-zinc-700 hover:border-zinc-500 font-mono text-xs">
-                <KeyRound className="h-3.5 w-3.5 mr-1.5" />
-                Join via PIN
-              </Button>
-            </Link>
-            <Link href="/host/create">
-              <Button className="bg-white text-black hover:bg-zinc-200 font-semibold font-mono text-xs">
-                <PlusCircle className="h-3.5 w-3.5 mr-1.5" />
-                Host New CTF
-              </Button>
-            </Link>
           </div>
         </div>
 

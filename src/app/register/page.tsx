@@ -69,6 +69,11 @@ export default function RegisterPage() {
       }
 
       const supabase = createClient();
+      const redirectUrl =
+        typeof window !== "undefined"
+          ? `${window.location.origin}/dashboard`
+          : undefined;
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -76,6 +81,7 @@ export default function RegisterPage() {
           data: {
             username: values.username,
           },
+          emailRedirectTo: redirectUrl,
         },
       });
 

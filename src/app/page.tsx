@@ -3,11 +3,8 @@ import { Flag, ShieldCheck, Zap, Users, ArrowRight, Play, Sparkles, Terminal, Tr
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { INITIAL_MOCK_EVENTS } from "@/lib/mock-data";
 
 export default function HomePage() {
-  const activeEvent = INITIAL_MOCK_EVENTS[0];
-
   return (
     <div className="flex-1 flex flex-col justify-center cyber-grid">
       {/* Hero Section */}
@@ -52,47 +49,6 @@ export default function HomePage() {
               </Link>
             </div>
           </div>
-
-          {/* Quick interactive test drive card */}
-          {activeEvent && (
-            <div className="mt-14 max-w-2xl mx-auto">
-              <Card className="border-zinc-800 bg-zinc-950/80 backdrop-blur-md shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-zinc-400 to-emerald-500" />
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="success" className="gap-1.5 py-1">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                      LIVE COMPETITION READY
-                    </Badge>
-                    <span className="font-mono text-xs text-zinc-400">PIN: <strong className="text-white text-sm tracking-wider font-bold">{activeEvent.pin_code}</strong></span>
-                  </div>
-                  <CardTitle className="text-xl mt-2">{activeEvent.title}</CardTitle>
-                  <CardDescription>
-                    Test drive the platform right now without any setup! Try decoding flags and submitting answers.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pt-0 flex flex-wrap gap-2.5">
-                  <Link href={`/events/${activeEvent.id}/play`}>
-                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs">
-                      <Play className="h-3.5 w-3.5 mr-1.5" />
-                      Play As Competitor
-                    </Button>
-                  </Link>
-                  <Link href={`/events/${activeEvent.id}/scoreboard`}>
-                    <Button size="sm" variant="outline" className="border-zinc-700 text-xs font-mono">
-                      <Trophy className="h-3.5 w-3.5 mr-1.5 text-amber-400" />
-                      Live Scoreboard
-                    </Button>
-                  </Link>
-                  <Link href={`/events/${activeEvent.id}/host`}>
-                    <Button size="sm" variant="secondary" className="text-xs font-mono">
-                      Host View & Submissions
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
-          )}
         </div>
       </section>
 
