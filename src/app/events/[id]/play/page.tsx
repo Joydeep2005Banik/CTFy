@@ -314,7 +314,7 @@ function PlayArenaContent() {
                 {formatTimeRemaining(timeUntilStart)}
               </div>
               <p className="text-xs text-zinc-400 font-mono mt-2">
-                Starts at: {formatDate(event.start_time)}
+                Starts at: {formatDate(event.start_time, true)}
               </p>
             </div>
 

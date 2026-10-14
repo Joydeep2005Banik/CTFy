@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(dateString: string | Date) {
+export function formatDate(dateString: string | Date, includeTz: boolean = false) {
   const d = new Date(dateString);
   return d.toLocaleString("en-US", {
     month: "short",
@@ -14,6 +14,7 @@ export function formatDate(dateString: string | Date) {
     hour: "numeric",
     minute: "2-digit",
     hour12: true,
+    ...(includeTz ? { timeZoneName: "short" } : {}),
   });
 }
 

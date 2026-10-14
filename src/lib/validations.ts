@@ -21,6 +21,7 @@ export const CreateEventSchema = z
       ),
     start_time: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid start time"),
     end_time: z.string().refine((val) => !isNaN(Date.parse(val)), "Invalid end time"),
+    timezone_offset: z.number().optional(),
     questions: z.array(QuestionSchema).min(1, "At least one question is required"),
   })
   .refine((data) => new Date(data.end_time) > new Date(data.start_time), {

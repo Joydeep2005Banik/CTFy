@@ -166,7 +166,7 @@ function ScoreboardContent() {
             </h1>
             <p className="text-xs text-zinc-400 font-mono mt-1">
               Host: <span className="text-zinc-200">{event.host?.username || "Host"}</span> • Active:{" "}
-              {formatDate(event.start_time)} to {formatDate(event.end_time)}
+              {formatDate(event.start_time, true)} to {formatDate(event.end_time, true)}
             </p>
           </div>
 

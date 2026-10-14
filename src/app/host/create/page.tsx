@@ -19,6 +19,7 @@ import {
   AlertCircle,
   HelpCircle,
   Wand2,
+  Globe,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CreateEventSchema, EventFormValues } from "@/lib/validations";
 import { createEventAction } from "@/lib/actions";
+import { formatDate } from "@/lib/utils";
 
 function generatePin(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -46,10 +48,25 @@ function formatToLocalDatetimeInput(date: Date): string {
   return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+export function parseLocalDateTimeToIso(datetimeLocalValue: string): string {
+  if (!datetimeLocalValue) return new Date().toISOString();
+  if (datetimeLocalValue.includes("Z") || datetimeLocalValue.includes("+") || /T\d{2}:\d{2}(:\d{2})?-\d{2}:\d{2}/.test(datetimeLocalValue)) {
+    return new Date(datetimeLocalValue).toISOString();
+  }
+  const [dPart, tPart] = datetimeLocalValue.split("T");
+  if (!dPart || !tPart) {
+    return new Date(datetimeLocalValue).toISOString();
+  }
+  const [y, m, d] = dPart.split("-").map(Number);
+  const [hh, mm] = tPart.split(":").map(Number);
+  return new Date(y, m - 1, d, hh, mm, 0).toISOString();
+}
+
 function CreateHostEventContent() {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [detectedTz, setDetectedTz] = useState<string>("");
 
   const {
     register,
@@ -84,6 +101,17 @@ function CreateHostEventContent() {
     setValue("start_time", formatToLocalDatetimeInput(start));
     setValue("end_time", formatToLocalDatetimeInput(end));
     setValue("pin_code", generatePin());
+
+    try {
+      const tzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const offsetMin = new Date().getTimezoneOffset();
+      const sign = offsetMin <= 0 ? "+" : "-";
+      const hours = String(Math.floor(Math.abs(offsetMin) / 60)).padStart(2, "0");
+      const mins = String(Math.abs(offsetMin) % 60).padStart(2, "0");
+      setDetectedTz(`${tzName} (UTC${sign}${hours}:${mins})`);
+    } catch {
+      setDetectedTz("Local Time");
+    }
   }, [setValue]);
 
   const { fields, append, remove, move } = useFieldArray({
@@ -92,6 +120,8 @@ function CreateHostEventContent() {
   });
 
   const watchQuestions = watch("questions");
+  const watchStartTime = watch("start_time");
+  const watchEndTime = watch("end_time");
 
   const onSubmit = async (data: EventFormValues) => {
     setSubmitError(null);
@@ -99,11 +129,12 @@ function CreateHostEventContent() {
 
     try {
       // Explicitly convert user's local input dates to standard UTC ISO strings
-      // so PostgreSQL timestamptz stores the exact timestamp without timezone drift
+      // and attach the user's timezone offset for absolute precision
       const payload: EventFormValues = {
         ...data,
-        start_time: new Date(data.start_time).toISOString(),
-        end_time: new Date(data.end_time).toISOString(),
+        start_time: parseLocalDateTimeToIso(data.start_time),
+        end_time: parseLocalDateTimeToIso(data.end_time),
+        timezone_offset: new Date().getTimezoneOffset(),
       };
 
       const res = await createEventAction(payload);
@@ -184,6 +215,14 @@ function CreateHostEventContent() {
                 )}
               </div>
 
+              {/* Detected Timezone Banner */}
+              <div className="flex items-center gap-2 text-xs font-mono text-zinc-400 bg-zinc-900/60 px-3 py-2 rounded-md border border-zinc-800">
+                <Globe className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <span>
+                  Host Timezone: <strong className="text-zinc-200">{detectedTz || "Detecting..."}</strong>. Schedules will match your local time.
+                </span>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* PIN Code */}
                 <div className="space-y-2">
@@ -228,6 +267,11 @@ function CreateHostEventContent() {
                       {...register("start_time")}
                     />
                   </div>
+                  {watchStartTime && (
+                    <p className="text-[10px] font-mono text-emerald-400/90 truncate">
+                      ✓ Starts: {formatDate(parseLocalDateTimeToIso(watchStartTime), true)}
+                    </p>
+                  )}
                   {errors.start_time && (
                     <p className="text-xs text-red-400">{errors.start_time.message}</p>
                   )}
@@ -247,6 +291,11 @@ function CreateHostEventContent() {
                       {...register("end_time")}
                     />
                   </div>
+                  {watchEndTime && (
+                    <p className="text-[10px] font-mono text-emerald-400/90 truncate">
+                      ✓ Ends: {formatDate(parseLocalDateTimeToIso(watchEndTime), true)}
+                    </p>
+                  )}
                   {errors.end_time && (
                     <p className="text-xs text-red-400">{errors.end_time.message}</p>
                   )}

@@ -227,7 +227,7 @@ function HostContent() {
               {event.title}
             </h1>
             <p className="text-xs sm:text-sm text-zinc-400 font-mono mt-1">
-              Schedule: {formatDate(event.start_time)} → {formatDate(event.end_time)}
+              Schedule: {formatDate(event.start_time, true)} → {formatDate(event.end_time, true)}
             </p>
           </div>
 

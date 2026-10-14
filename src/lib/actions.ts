@@ -8,6 +8,27 @@ import { INITIAL_MOCK_EVENTS, INITIAL_MOCK_QUESTIONS, INITIAL_MOCK_SUBMISSIONS, 
 
 import { CreateEventSchema, QuestionSchema, EventFormValues } from "./validations";
 
+function ensureUtcIso(timeStr: string, offsetMinutes?: number): string {
+  // If already has ISO timezone indicator like 'Z' or '+05:30' or '-04:00'
+  if (timeStr.includes("Z") || timeStr.includes("+") || /T\d{2}:\d{2}(:\d{2})?-\d{2}:\d{2}/.test(timeStr)) {
+    return new Date(timeStr).toISOString();
+  }
+
+  // If local time without timezone was passed (e.g. "2026-10-14T22:45" from datetime-local input)
+  if (typeof offsetMinutes === "number" && !isNaN(offsetMinutes)) {
+    const [dPart, tPart] = timeStr.split("T");
+    if (dPart && tPart) {
+      const [y, m, d] = dPart.split("-").map(Number);
+      const [hh, mm] = tPart.split(":").map(Number);
+      const fakeUtcMs = Date.UTC(y, m - 1, d, hh, mm, 0);
+      const realUtcMs = fakeUtcMs + offsetMinutes * 60 * 1000;
+      return new Date(realUtcMs).toISOString();
+    }
+  }
+
+  return new Date(timeStr).toISOString();
+}
+
 // ==============================================================================
 // Server Action: Create Event
 // ==============================================================================
@@ -20,7 +41,9 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
     };
   }
 
-  const { title, pin_code, start_time, end_time, questions } = validated.data;
+  const { title, pin_code, start_time, end_time, timezone_offset, questions } = validated.data;
+  const finalStartTime = ensureUtcIso(start_time, timezone_offset);
+  const finalEndTime = ensureUtcIso(end_time, timezone_offset);
 
   if (!isSupabaseConfigured()) {
     // Demo Mode: Mock create
@@ -30,8 +53,8 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
       title,
       pin_code,
       host_id: DEMO_USER.id,
-      start_time,
-      end_time,
+      start_time: finalStartTime,
+      end_time: finalEndTime,
       created_at: new Date().toISOString(),
       host: DEMO_USER,
       _count: {
@@ -89,8 +112,8 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
       title,
       pin_code,
       host_id: user.id,
-      start_time,
-      end_time,
+      start_time: finalStartTime,
+      end_time: finalEndTime,
     })
     .select()
     .single();
