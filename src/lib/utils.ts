@@ -30,3 +30,29 @@ export function formatTimeRemaining(ms: number) {
     seconds.toString().padStart(2, "0"),
   ].join(":");
 }
+
+export function getUnlockedEventIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem("ctfy_unlocked_events");
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markEventUnlocked(eventId: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const list = getUnlockedEventIds();
+    if (!list.includes(eventId)) {
+      list.push(eventId);
+      localStorage.setItem("ctfy_unlocked_events", JSON.stringify(list));
+    }
+  } catch {}
+}
+
+export function isEventUnlocked(eventId: string): boolean {
+  return getUnlockedEventIds().includes(eventId);
+}
+

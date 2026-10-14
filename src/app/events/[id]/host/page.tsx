@@ -28,6 +28,7 @@ import {
   INITIAL_MOCK_EVENTS,
   INITIAL_MOCK_QUESTIONS,
   INITIAL_MOCK_SUBMISSIONS,
+  DEMO_USER,
   computeLeaderboard,
 } from "@/lib/mock-data";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
@@ -38,6 +39,7 @@ function HostContent() {
   const eventId = params.id as string;
 
   const [event, setEvent] = useState<CTFEvent | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [copiedPin, setCopiedPin] = useState(false);
@@ -52,6 +54,10 @@ function HostContent() {
 
     async function loadData() {
       if (!isSupabaseConfigured()) {
+        const demoStored = localStorage.getItem("ctfy_demo_user");
+        const uid = demoStored ? JSON.parse(demoStored).id : DEMO_USER.id;
+        setCurrentUserId(uid);
+
         const foundEvent = INITIAL_MOCK_EVENTS.find((e) => e.id === eventId);
         const eventSubs = INITIAL_MOCK_SUBMISSIONS[eventId] || [];
 
@@ -64,6 +70,11 @@ function HostContent() {
       }
 
       const supabase = createClient();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      setCurrentUserId(session?.user?.id || null);
 
       // Fetch Event
       const { data: eventData } = await supabase
@@ -200,6 +211,34 @@ function HostContent() {
                 Return to Dashboard
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (currentUserId && event.host_id !== currentUserId) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-8 cyber-grid">
+        <Card className="max-w-md w-full border-zinc-800 text-center py-8">
+          <CardContent className="space-y-4">
+            <Shield className="h-10 w-10 text-amber-500 mx-auto" />
+            <h2 className="text-xl font-bold text-white">Host Access Restricted</h2>
+            <p className="text-xs text-zinc-400">
+              Only the organizer of &quot;{event.title}&quot; can access the host management deck.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Link href={`/events/${event.id}/play`}>
+                <Button size="sm" className="bg-white text-black font-semibold text-xs">
+                  Participant View
+                </Button>
+              </Link>
+              <Link href="/dashboard">
+                <Button size="sm" variant="outline" className="border-zinc-700 text-xs">
+                  Dashboard
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

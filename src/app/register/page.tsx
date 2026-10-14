@@ -64,7 +64,7 @@ export default function RegisterPage() {
           email: values.email,
         };
         localStorage.setItem("ctfy_demo_user", JSON.stringify(demoUser));
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
         return;
       }
 

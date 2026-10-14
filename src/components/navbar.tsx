@@ -63,15 +63,12 @@ export function Navbar() {
   const handleSignOut = async () => {
     if (!isSupabaseConfigured()) {
       localStorage.removeItem("ctfy_demo_user");
-      setUser(null);
-      router.push("/login");
-      return;
+    } else {
+      const supabase = createClient();
+      await supabase.auth.signOut();
     }
-
-    const supabase = createClient();
-    await supabase.auth.signOut();
     setUser(null);
-    router.push("/login");
+    window.location.href = "/login";
   };
 
   return (

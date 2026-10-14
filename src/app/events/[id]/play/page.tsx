@@ -18,16 +18,18 @@ import {
   Shield,
   HelpCircle,
   ImageIcon,
+  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CTFEvent, PublicQuestion, getEventStatus } from "@/lib/types";
-import { getEventQuestionnaireAction, submitFlagAction } from "@/lib/actions";
+import { getEventQuestionnaireAction, submitFlagAction, findEventByPinAction } from "@/lib/actions";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { DEMO_USER } from "@/lib/mock-data";
-import { formatDate, formatTimeRemaining } from "@/lib/utils";
+import { formatDate, formatTimeRemaining, isEventUnlocked, markEventUnlocked } from "@/lib/utils";
 import confetti from "canvas-confetti";
 
 function PlayArenaContent() {
@@ -40,6 +42,12 @@ function PlayArenaContent() {
   const [user, setUser] = useState<{ id: string; username: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // PIN gate state
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [gatePin, setGatePin] = useState("");
+  const [gateError, setGateError] = useState<string | null>(null);
+  const [unlocking, setUnlocking] = useState(false);
 
   // Solved state tracking for current user: questionId -> boolean
   const [solvedMap, setSolvedMap] = useState<Record<string, boolean>>({});
@@ -62,6 +70,12 @@ function PlayArenaContent() {
     if (!eventId) return;
 
     async function init() {
+      // Reset inputs & feedback to guarantee clean state per user
+      setInputs({});
+      setFeedbacks({});
+      setSolvedMap({});
+      setUserTotalPoints(0);
+
       // 1. Resolve user
       let currentUserId = DEMO_USER.id;
       let currentUsername = DEMO_USER.username;
@@ -109,6 +123,10 @@ function PlayArenaContent() {
       setEvent(res.event);
       setQuestions(res.questions || []);
 
+      const isHost = res.event.host_id === currentUserId;
+      const alreadyUnlocked = isEventUnlocked(eventId);
+      let hasPastSubs = false;
+
       // 3. Fetch past submissions of this user to restore solved questions
       if (isSupabaseConfigured()) {
         const supabase = createClient();
@@ -119,7 +137,8 @@ function PlayArenaContent() {
           .eq("user_id", currentUserId)
           .eq("is_correct", true);
 
-        if (pastSubs) {
+        if (pastSubs && pastSubs.length > 0) {
+          hasPastSubs = true;
           const map: Record<string, boolean> = {};
           let total = 0;
           pastSubs.forEach((s) => {
@@ -137,15 +156,44 @@ function PlayArenaContent() {
             const parsed = JSON.parse(savedSolves);
             setSolvedMap(parsed.map || {});
             setUserTotalPoints(parsed.points || 0);
+            if (Object.keys(parsed.map || {}).length > 0) hasPastSubs = true;
           } catch {}
         }
       }
 
+      setIsUnlocked(isHost || alreadyUnlocked || hasPastSubs);
       setLoading(false);
     }
 
     init();
   }, [eventId]);
+
+  const handleUnlockPin = async () => {
+    const clean = gatePin.trim();
+    if (!clean) return;
+    setUnlocking(true);
+    setGateError(null);
+
+    try {
+      if (event && clean.toUpperCase() === event.pin_code.trim().toUpperCase()) {
+        markEventUnlocked(eventId);
+        setIsUnlocked(true);
+        setUnlocking(false);
+        return;
+      }
+
+      const res = await findEventByPinAction(clean);
+      if (res.success && res.event && res.event.id === eventId) {
+        markEventUnlocked(eventId);
+        setIsUnlocked(true);
+      } else {
+        setGateError("Incorrect competition PIN code. Please verify with the event host.");
+      }
+    } catch {
+      setGateError("Failed to verify PIN code. Please try again.");
+    }
+    setUnlocking(false);
+  };
 
   // Tick timer for countdowns
   useEffect(() => {
@@ -199,6 +247,7 @@ function PlayArenaContent() {
           },
         }));
         setSolvedMap((prev) => ({ ...prev, [questionId]: true }));
+        setInputs((prev) => ({ ...prev, [questionId]: "" }));
       } else if (result.is_correct) {
         // Trigger celebratory confetti!
         try {
@@ -223,6 +272,8 @@ function PlayArenaContent() {
           return updated;
         });
 
+        // Clear input for this question immediately
+        setInputs((prev) => ({ ...prev, [questionId]: "" }));
         setUserTotalPoints((prev) => prev + (result.points_awarded || 0));
         setFeedbacks((prev) => ({
           ...prev,
@@ -274,6 +325,79 @@ function PlayArenaContent() {
                 Try Another PIN
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // ==============================================================================
+  // 0. PIN GATE: REQUIRE VALID PIN CODE TO ENTER ARENA
+  // ==============================================================================
+  if (!isUnlocked) {
+    return (
+      <div className="flex-1 flex items-center justify-center p-4 cyber-grid min-h-[70vh]">
+        <Card className="max-w-md w-full border-zinc-800 bg-zinc-950/90 backdrop-blur-md shadow-2xl text-center">
+          <CardHeader className="space-y-2 pb-2">
+            <div className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 mx-auto">
+              <KeyRound className="h-6 w-6 text-emerald-400" />
+            </div>
+            <Badge variant="outline" className="mx-auto text-xs font-mono border-zinc-800 text-zinc-400">
+              PIN PROTECTED ARENA
+            </Badge>
+            <CardTitle className="text-xl font-extrabold text-white">
+              {event.title}
+            </CardTitle>
+            <CardDescription className="text-xs text-zinc-400">
+              This competition requires a 6-character PIN code from the host to enter and submit flags.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4 pt-4">
+            <div className="space-y-2 text-left">
+              <Label htmlFor="gate_pin" className="text-xs font-mono text-zinc-400">
+                COMPETITION ACCESS PIN
+              </Label>
+              <Input
+                id="gate_pin"
+                placeholder="ENTER PIN CODE"
+                className="font-mono text-center tracking-widest uppercase font-bold text-lg text-emerald-400 h-12 bg-zinc-900/80 border-zinc-800"
+                value={gatePin}
+                onChange={(e) => {
+                  setGatePin(e.target.value.toUpperCase());
+                  setGateError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleUnlockPin();
+                  }
+                }}
+                maxLength={12}
+                autoFocus
+              />
+            </div>
+
+            {gateError && (
+              <p className="text-xs text-red-400 text-center font-mono">{gateError}</p>
+            )}
+
+            <Button
+              onClick={handleUnlockPin}
+              disabled={unlocking || !gatePin.trim()}
+              className="w-full bg-white text-black hover:bg-zinc-200 font-bold font-mono h-11 text-xs"
+            >
+              {unlocking ? "Verifying PIN..." : "Unlock Arena"}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+
+            <div className="pt-2">
+              <Link href="/dashboard">
+                <Button variant="ghost" size="sm" className="text-xs font-mono text-zinc-500 hover:text-zinc-300">
+                  Return to Dashboard
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -547,13 +671,21 @@ function PlayArenaContent() {
                       <div className="relative flex-1">
                         <Flag className="absolute left-3 top-2.5 h-4 w-4 text-zinc-500" />
                         <Input
+                          id={`flag-input-${q.id}`}
+                          name={`ctfy_flag_${user?.id || 'anon'}_${q.id}`}
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
+                          data-lpignore="true"
+                          data-1p-ignore="true"
                           placeholder={
                             isSolved
                               ? "Challenge solved!"
                               : "Enter flag (e.g. CTFy{secret_flag})"
                           }
                           disabled={isSolved || isSubmitting}
-                          value={inputs[q.id] || ""}
+                          value={isSolved ? "" : (inputs[q.id] || "")}
                           onChange={(e) =>
                             setInputs((prev) => ({ ...prev, [q.id]: e.target.value }))
                           }

@@ -51,7 +51,7 @@ export default function LoginPage() {
           email: values.email,
         };
         localStorage.setItem("ctfy_demo_user", JSON.stringify(demoUser));
-        router.push("/dashboard");
+        window.location.href = "/dashboard";
         return;
       }
 
@@ -67,7 +67,7 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/dashboard");
+      window.location.href = "/dashboard";
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "An unexpected error occurred.";
       setError(message);
@@ -84,7 +84,7 @@ export default function LoginPage() {
         email: "demo@ctfy.dev",
       })
     );
-    router.push("/dashboard");
+    window.location.href = "/dashboard";
   };
 
   return (

@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { findEventByPinAction } from "@/lib/actions";
 import { INITIAL_MOCK_EVENTS } from "@/lib/mock-data";
 import { isSupabaseConfigured } from "@/lib/supabase/client";
+import { markEventUnlocked } from "@/lib/utils";
 
 export default function JoinEventPage() {
   const router = useRouter();
@@ -38,7 +39,8 @@ export default function JoinEventPage() {
         return;
       }
 
-      // Valid PIN! Navigate to play arena
+      // Valid PIN! Mark event as unlocked and navigate to play arena
+      markEventUnlocked(res.event.id);
       router.push(`/events/${res.event.id}/play`);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error validating PIN.");
