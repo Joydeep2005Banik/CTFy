@@ -45,13 +45,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Multi-tier site icon system featuring the CTFy flag badge.
   - Adaptive vector SVG (`icon.svg`) with `@media (prefers-color-scheme)` supporting both dark and light browser tab bars.
   - Multi-resolution `.ico` (16×16, 32×32, 48×48) and Apple Touch icon (`apple-icon.png`).
-- **Open Source Documentation Suite:**
+- **Open Source Documentation & Tooling Suite:**
   - Product-grade `README.md` with live demo badge, architecture overview, and quickstart instructions.
   - Comprehensive `HOSTING_GUIDE.md` for event organizers (challenge design, PIN distribution, and live operations).
   - Detailed `PARTICIPANT_GUIDE.md` for competitors (joining via PIN, submitting flags, and tracking standings).
+  - `ARCHITECTURE.md` technical system design with Mermaid sequence diagrams, ERD, and zero-leak security model.
+  - `DEPENDENCIES.md` Software Bill of Materials (SBOM), component registry, and 100% permissive license audit compliance.
   - `SECURITY.md` establishing the threat model and responsible disclosure guidelines.
   - `CONTRIBUTING.md` contributor onboarding and Conventional Commit guidelines.
   - `CODE_OF_CONDUCT.md` adhering to Contributor Covenant v2.1.
+  - Automated GitHub Actions CI workflow (`.github/workflows/ci.yml`) for continuous build and lint verification.
+  - Cross-platform formatting standards (`.editorconfig`) and recommended workspace extensions (`.vscode/`).
   - GitHub issue templates for bug reports and feature requests, plus a pull request template.
   - MIT `LICENSE`.
 
@@ -60,3 +64,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dashboard Separation:** Eliminated global event leaks on user dashboards by separating views into "Hosted by You" and "Joined Competitions" tabs.
 - **Cross-User Session Protection:** Resolved answer pollution on shared browsers by adding unique scoped input keys, disabling browser autofill/autocomplete, and cleanly resetting in-memory states on login/logout.
 - **Timezone Scheduling:** Fixed event schedule offsets by converting `datetime-local` inputs directly to ISO UTC timestamps on creation and rendering them in the user's local timezone.
+- **Environment Template Tracking:** Adjusted `.gitignore` to allow `.env.example` for developer onboarding while keeping `.env.local` strictly protected.
