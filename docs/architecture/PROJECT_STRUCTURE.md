@@ -82,26 +82,32 @@ CTFy/
 ├── supabase/
 │   └── schema.sql                          # Complete PostgreSQL DDL, RLS, indexes & triggers
 │
+├── docs/                                   # Categorized documentation hub
+│   ├── README.md                           # Documentation directory & navigation portal
+│   ├── architecture/                       # System design, architecture & codebase maps
+│   │   ├── ARCHITECTURE.md                 # System topology, sequence diagrams & security model
+│   │   ├── DEPENDENCIES.md                 # Package version matrix, UI registry & license audit
+│   │   ├── PROJECT_STRUCTURE.md            # Exhaustive codebase reference & responsibility map
+│   │   └── SYSTEM_DESIGN.md                # High-throughput scaling, concurrency & resilience
+│   ├── guides/                             # User, organizer & author guides
+│   │   ├── CHALLENGE_AUTHORING.md          # Container-free challenge design blueprints
+│   │   ├── EVENT_OPERATIONS.md             # Live competition timeline, anti-cheat & operator runbook
+│   │   ├── HOSTING_GUIDE.md                # Organizer guide for hosting & challenge design
+│   │   └── PARTICIPANT_GUIDE.md            # Competitor guide for playing & flag submissions
+│   └── operations/                         # Deployment & tactical runbooks
+│       ├── DEPLOYMENT.md                   # Production deployment guide (Vercel, Docker, VPS)
+│       └── TROUBLESHOOTING.md              # Runbook for auth, PINs, scoring & realtime issues
+│
 ├── .editorconfig                           # Universal editor formatting standards
 ├── .env.example                            # Safe environment variable template
 ├── .gitignore                              # Git exclusion rules
-├── ARCHITECTURE.md                         # Technical system design & security model
-├── CHALLENGE_AUTHORING.md                  # Container-free challenge design & authoring blueprints
 ├── CHANGELOG.md                            # Version history & release notes
 ├── CODE_OF_CONDUCT.md                      # Contributor Covenant v2.1
 ├── CONTRIBUTING.md                         # Contributor onboarding & codebase guide
-├── DEPENDENCIES.md                         # Dependency matrix, UI registry & license audit
-├── DEPLOYMENT.md                           # Production deployment guide (Vercel, Docker, VPS)
-├── EVENT_OPERATIONS.md                     # Live competition timeline, anti-cheat & operator runbook
-├── HOSTING_GUIDE.md                        # Organizer guide for hosting & challenge design
 ├── LICENSE                                 # MIT License
-├── PARTICIPANT_GUIDE.md                    # Competitor guide for playing & flag submissions
-├── PROJECT_STRUCTURE.md                    # Exhaustive codebase reference & responsibility map
 ├── README.md                               # Project landing document & documentation index
 ├── ROADMAP.md                              # Future vision, milestones & feature pipeline
 ├── SECURITY.md                             # Responsible vulnerability disclosure policy
-├── SYSTEM_DESIGN.md                        # High-throughput scaling, concurrency & resilience
-├── TROUBLESHOOTING.md                      # Runbook for auth, PINs, scoring & realtime issues
 ├── package.json                            # Package manifests & scripts
 ├── package-lock.json                       # Cryptographic dependency lockfile
 └── tsconfig.json                           # TypeScript compiler configuration

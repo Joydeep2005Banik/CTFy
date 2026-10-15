@@ -57,7 +57,7 @@ The following table details all direct runtime packages deployed in production:
 
 ## 4. UI Component Registry & Primitives Mapping
 
-All user interface components reside in [`src/components/ui/`](src/components/ui/) and follow the [shadcn/ui](https://ui.shadcn.com/) architecture:
+All user interface components reside in [`src/components/ui/`](../../src/components/ui/) and follow the [shadcn/ui](https://ui.shadcn.com/) architecture:
 
 ```
 src/components/
@@ -115,7 +115,7 @@ Copyleft (GPL/AGPL):     0 packages ( 0.0%) [CLEAN]
 
 ### Build & Dev Environment Notes:
 - The development toolchain relies on `eslint-config-next@16.4.0`.
-- All production code is verified by automated continuous integration on GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) verifying:
+- All production code is verified by automated continuous integration on GitHub Actions ([`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)) verifying:
   1. `npm ci` (deterministic lockfile validation)
   2. `npm run lint` (ESLint static analysis)
   3. `npm run build` (Next.js production Turbopack compilation)

@@ -20,7 +20,7 @@ Before deploying the frontend application, provision your Supabase backend:
 
 1. Create a free project at **[supabase.com](https://supabase.com)**.
 2. In your Supabase Dashboard, open the **SQL Editor**.
-3. Open [`supabase/schema.sql`](supabase/schema.sql) from this repository, paste the entire script, and click **Run**.
+3. Open [`supabase/schema.sql`](../../supabase/schema.sql) from this repository, paste the entire script, and click **Run**.
 4. Retrieve your API credentials from **Project Settings** $\rightarrow$ **API**:
    - **Project URL:** `https://your-project.supabase.co`
    - **Anon Public Key:** `eyJhbGciOi...`

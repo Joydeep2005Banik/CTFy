@@ -27,10 +27,10 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 **CTFy changes that.** It is built for organizers who want to host fast, responsive flag-capture events in minutes without infrastructure headaches. You provide the prompts, hints, external assets, and flags—CTFy handles real-time submissions, server-side verification, and live scoreboards.
 
 > 📖 **Helpful Guides:**
-> - [**Hosting Guide (HOSTING_GUIDE.md)**](HOSTING_GUIDE.md): Challenge design, PIN distribution, and live event management for organizers.
-> - [**Participant Guide (PARTICIPANT_GUIDE.md)**](PARTICIPANT_GUIDE.md): Step-by-step instructions for competitors on joining via PIN, solving challenges, and submitting flags.
-> - [**Challenge Authoring Guide (CHALLENGE_AUTHORING.md)**](CHALLENGE_AUTHORING.md): Blueprints for designing Crypto, Forensics, Web, and Rev challenges without containers.
-> - [**Event Day Operations Playbook (EVENT_OPERATIONS.md)**](EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, hint drops, and tie-breaking runbook.
+> - [**Hosting Guide**](docs/guides/HOSTING_GUIDE.md): Challenge design, PIN distribution, and live event management for organizers.
+> - [**Participant Guide**](docs/guides/PARTICIPANT_GUIDE.md): Step-by-step instructions for competitors on joining via PIN, solving challenges, and submitting flags.
+> - [**Challenge Authoring Guide**](docs/guides/CHALLENGE_AUTHORING.md): Blueprints for designing Crypto, Forensics, Web, and Rev challenges without containers.
+> - [**Event Day Operations Playbook**](docs/guides/EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, hint drops, and tie-breaking runbook.
 
 ---
 
@@ -57,7 +57,7 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 | **Validation** | [React Hook Form 7.90](https://react-hook-form.com), [Zod 4.6](https://zod.dev) | High-performance client & server schema validation |
 | **Deployment** | [Vercel](https://vercel.com) | Global edge deployment and SSL automation |
 
-> 📦 **Dependencies & Audit Compliance:** For the full dependency version matrix, license audit, and UI component specifications, see [**`DEPENDENCIES.md`**](DEPENDENCIES.md).
+> 📦 **Dependencies & Audit Compliance:** For the full dependency version matrix, license audit, and UI component specifications, see [**`DEPENDENCIES.md`**](docs/architecture/DEPENDENCIES.md).
 
 ---
 
@@ -146,28 +146,34 @@ CTFy/
 - **Zero-Secret Bundles:** Flag comparisons happen strictly inside `submitFlagAction` in [`src/lib/actions.ts`](./src/lib/actions.ts) using the privileged Supabase Service Role client.
 - **PIN Verification:** Access to challenge prompts is restricted to users who verify the 6-character PIN or are the verified creator of the event.
 - **Input Sanitization:** Flag inputs disable browser autofill, spellcheck, and credential-manager caching to prevent cross-account answer leaks on shared computers.
-- 🏛️ **Full Technical Breakdown:** See [**`ARCHITECTURE.md`**](ARCHITECTURE.md) for Mermaid sequence diagrams, database ERD, and real-time state synchronization flows.
+- 🏛️ **Full Technical Breakdown:** See [**`ARCHITECTURE.md`**](docs/architecture/ARCHITECTURE.md) for Mermaid sequence diagrams, database ERD, and real-time state synchronization flows.
 
 ---
 
-## 🤝 Contributing & Community
+## 📚 Documentation & Community
 
-We welcome contributions from the community!
-- 🛠️ [**System Design & Engineering**](SYSTEM_DESIGN.md): Concurrency model, high-throughput scaling, and fault tolerance.
-- 🏛️ [**Architecture & Data Flow**](ARCHITECTURE.md): System topology, Mermaid sequence diagrams, and security architecture.
-- 🌲 [**Project Structure & Codebase Map**](PROJECT_STRUCTURE.md): Detailed visual tree and file-by-file breakdown.
+Explore the [**CTFy Documentation Hub (docs/)**](docs/README.md) for complete technical references and operational runbooks:
+
+### 🚩 Guides & Operations
+- 📖 [**Hosting Guide**](docs/guides/HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
+- 🎯 [**Participant Guide**](docs/guides/PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
+- 🧩 [**Challenge Authoring & Question Design**](docs/guides/CHALLENGE_AUTHORING.md): Blueprints for creating fair, engaging CTF challenges without containers.
+- 📋 [**Event Day Operations & Anti-Cheat Playbook**](docs/guides/EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, live errata, and podium verification.
+- 🚀 [**Deployment & Self-Hosting Guide**](docs/operations/DEPLOYMENT.md): Step-by-step instructions for Vercel, Docker, and Linux VPS self-hosting.
+- 🔍 [**Troubleshooting Guide & Runbook**](docs/operations/TROUBLESHOOTING.md): Solutions for email confirmation, PIN unlock, and realtime issues.
+
+### 🏛️ Architecture & Engineering
+- 🛠️ [**System Design & Engineering**](docs/architecture/SYSTEM_DESIGN.md): Concurrency model, high-throughput scaling, and fault tolerance.
+- 🏛️ [**Architecture & Data Flow**](docs/architecture/ARCHITECTURE.md): System topology, Mermaid sequence diagrams, and security architecture.
+- 🌲 [**Project Structure & Codebase Map**](docs/architecture/PROJECT_STRUCTURE.md): Detailed visual tree and file-by-file breakdown.
+- 📦 [**Dependencies & Audit Compliance**](docs/architecture/DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
+
+### 🤝 Project Standards & Community
 - 🗺️ [**Product Roadmap**](ROADMAP.md): Strategic vision, upcoming milestones (Team Mode, timers, dynamic scoring).
-- 📦 [**Dependencies & Audit Compliance**](DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
-- 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
-- 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
-- 🧩 [**Challenge Authoring & Question Design**](CHALLENGE_AUTHORING.md): Blueprints for creating fair, engaging CTF challenges without containers.
-- 📋 [**Event Day Operations & Anti-Cheat Playbook**](EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, live errata, and podium verification.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
 - 🐛 [**Issue Templates**](.github/ISSUE_TEMPLATE/): Report bugs or submit feature proposals.
-- 🚀 [**Deployment & Self-Hosting Guide**](DEPLOYMENT.md): Step-by-step instructions for Vercel, Docker, and Linux VPS self-hosting.
-- 🔍 [**Troubleshooting Guide & Runbook**](TROUBLESHOOTING.md): Solutions for email confirmation, PIN unlock, and realtime issues.
 - 📜 [**Changelog**](CHANGELOG.md): Complete history of platform features and bug fixes.
 
 ---

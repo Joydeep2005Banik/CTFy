@@ -85,21 +85,28 @@ CTFy/
 ├── .github/
 │   ├── workflows/ci.yml            # GitHub Actions CI build and lint verification
 │   └── ISSUE_TEMPLATE/             # Structured Bug Report and Feature Request forms
-├── ARCHITECTURE.md                 # System topology, sequence diagrams, and security architecture
-├── CHALLENGE_AUTHORING.md          # Challenge design blueprints & container-free authoring guide
+├── docs/                           # Categorized documentation hub
+│   ├── README.md                   # Documentation index & navigation portal
+│   ├── architecture/               # System topology, concurrency models & dependency SBOM
+│   │   ├── ARCHITECTURE.md         # System topology, sequence diagrams, and security architecture
+│   │   ├── DEPENDENCIES.md         # Package version matrix, license review, and UI registry
+│   │   ├── PROJECT_STRUCTURE.md    # File-by-file codebase reference & architecture map
+│   │   └── SYSTEM_DESIGN.md        # High-throughput scaling, concurrency & resilience
+│   ├── guides/                     # User, organizer & author guides
+│   │   ├── CHALLENGE_AUTHORING.md  # Challenge design blueprints & container-free authoring guide
+│   │   ├── EVENT_OPERATIONS.md     # Event day runbook, anti-cheat protocol, and podium audits
+│   │   ├── HOSTING_GUIDE.md        # Organizer guide for challenge design and PIN distribution
+│   │   └── PARTICIPANT_GUIDE.md    # Competitor guide for playing and submitting flags
+│   └── operations/                 # Production deployment & troubleshooting runbooks
+│       ├── DEPLOYMENT.md           # Production deployment guide (Vercel, Docker, Linux VPS)
+│       └── TROUBLESHOOTING.md      # Solutions for auth, PINs, scoring & realtime issues
 ├── CHANGELOG.md                    # Platform version history and release notes
 ├── CODE_OF_CONDUCT.md              # Contributor Covenant v2.1 code of conduct
 ├── CONTRIBUTING.md                 # Contributor onboarding, development workflow, and PR checklist
-├── DEPENDENCIES.md                 # Package version matrix, license review, and UI registry
-├── DEPLOYMENT.md                   # Production deployment guide (Vercel, Docker, Linux VPS)
-├── EVENT_OPERATIONS.md             # Event day runbook, anti-cheat protocol, and podium audits
-├── HOSTING_GUIDE.md                # Organizer guide for challenge design and PIN distribution
-├── PARTICIPANT_GUIDE.md            # Competitor guide for playing and submitting flags
-├── PROJECT_STRUCTURE.md            # File-by-file codebase reference & architecture map
+├── LICENSE                         # MIT open-source license
+├── README.md                       # Project landing document
 ├── ROADMAP.md                      # Strategic roadmap, milestones, and upcoming features
-├── SECURITY.md                     # Responsible disclosure and security reporting guidelines
-├── SYSTEM_DESIGN.md                # High-throughput scaling, concurrency & resilience
-└── TROUBLESHOOTING.md              # Solutions for auth, PINs, scoring & realtime issues
+└── SECURITY.md                     # Responsible disclosure and security reporting guidelines
 ```
 
 ### Where Should You Make Your Changes?
