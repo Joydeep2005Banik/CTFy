@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="https://ctfy-blush.vercel.app/"><img src="https://img.shields.io/badge/Live%20Demo-ctfy--blush.vercel.app-white?style=for-the-badge&logo=vercel&logoColor=black" alt="Live Demo" /></a>
+  <a href="https://github.com/Joydeep2005Banik/CTFy/actions"><img src="https://github.com/Joydeep2005Banik/CTFy/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
   <img src="https://img.shields.io/badge/Next.js-16.4-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/React-19.3-blue?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
   <img src="https://img.shields.io/badge/Supabase-Database%20%26%20Realtime-emerald?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
