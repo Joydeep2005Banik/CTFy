@@ -4,6 +4,10 @@ Welcome to the official hosting manual for **CTFy**!
 
 Whether you are running a collegiate hackathon, a university cybersecurity club round, a corporate security awareness workshop, or a friendly trivia challenge, this guide walks you through every phase: from conceptualizing challenge questions to managing live scoreboards and distributing event PIN codes using simple UI buttons.
 
+> 💡 **Specialized Guides:**
+> - For in-depth challenge templates across Crypto, Forensics, Web, and Rev, see [**`CHALLENGE_AUTHORING.md`**](CHALLENGE_AUTHORING.md).
+> - For the minute-by-minute competition day runbook and anti-cheat protocols, see [**`EVENT_OPERATIONS.md`**](EVENT_OPERATIONS.md).
+
 ---
 
 ## Table of Contents

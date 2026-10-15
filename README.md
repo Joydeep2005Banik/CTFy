@@ -29,6 +29,8 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 > 📖 **Helpful Guides:**
 > - [**Hosting Guide (HOSTING_GUIDE.md)**](HOSTING_GUIDE.md): Challenge design, PIN distribution, and live event management for organizers.
 > - [**Participant Guide (PARTICIPANT_GUIDE.md)**](PARTICIPANT_GUIDE.md): Step-by-step instructions for competitors on joining via PIN, solving challenges, and submitting flags.
+> - [**Challenge Authoring Guide (CHALLENGE_AUTHORING.md)**](CHALLENGE_AUTHORING.md): Blueprints for designing Crypto, Forensics, Web, and Rev challenges without containers.
+> - [**Event Day Operations Playbook (EVENT_OPERATIONS.md)**](EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, hint drops, and tie-breaking runbook.
 
 ---
 
@@ -158,6 +160,8 @@ We welcome contributions from the community!
 - 📦 [**Dependencies & Audit Compliance**](DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
+- 🧩 [**Challenge Authoring & Question Design**](CHALLENGE_AUTHORING.md): Blueprints for creating fair, engaging CTF challenges without containers.
+- 📋 [**Event Day Operations & Anti-Cheat Playbook**](EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, live errata, and podium verification.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.

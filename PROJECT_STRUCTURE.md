@@ -86,11 +86,13 @@ CTFy/
 ├── .env.example                            # Safe environment variable template
 ├── .gitignore                              # Git exclusion rules
 ├── ARCHITECTURE.md                         # Technical system design & security model
+├── CHALLENGE_AUTHORING.md                  # Container-free challenge design & authoring blueprints
 ├── CHANGELOG.md                            # Version history & release notes
 ├── CODE_OF_CONDUCT.md                      # Contributor Covenant v2.1
 ├── CONTRIBUTING.md                         # Contributor onboarding & codebase guide
 ├── DEPENDENCIES.md                         # Dependency matrix, UI registry & license audit
 ├── DEPLOYMENT.md                           # Production deployment guide (Vercel, Docker, VPS)
+├── EVENT_OPERATIONS.md                     # Live competition timeline, anti-cheat & operator runbook
 ├── HOSTING_GUIDE.md                        # Organizer guide for hosting & challenge design
 ├── LICENSE                                 # MIT License
 ├── PARTICIPANT_GUIDE.md                    # Competitor guide for playing & flag submissions
