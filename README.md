@@ -55,7 +55,7 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 | **Validation** | [React Hook Form 7.90](https://react-hook-form.com), [Zod 4.6](https://zod.dev) | High-performance client & server schema validation |
 | **Deployment** | [Vercel](https://vercel.com) | Global edge deployment and SSL automation |
 
-> 🧩 **Detailed Component Specs:** For the complete dependency matrix, Radix UI primitive breakdown, and UI component API reference, see [**`COMPONENTS.md`**](COMPONENTS.md).
+> 📦 **Dependencies & Audit Compliance:** For the full dependency version matrix, license audit, and UI component specifications, see [**`DEPENDENCIES.md`**](DEPENDENCIES.md).
 
 ---
 
@@ -152,7 +152,7 @@ CTFy/
 
 We welcome contributions from the community!
 - 🏛️ [**Architecture & System Design**](ARCHITECTURE.md): Technical deep-dive, sequence diagrams, and security architecture.
-- 🧩 [**Component Reference**](COMPONENTS.md): Complete dependency matrix, Radix UI primitives, and UI component inventory.
+- 📦 [**Dependencies & Audit Compliance**](DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
