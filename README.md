@@ -46,14 +46,16 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | [Next.js 16 (App Router, Turbopack)](https://nextjs.org) |
-| **Frontend** | [React 19](https://react.dev), [TypeScript 5](https://www.typescriptlang.org) |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Lucide Icons](https://lucide.dev) |
-| **Database & Auth** | [Supabase](https://supabase.com) (PostgreSQL, Row Level Security, Realtime, Auth) |
-| **Form Validation** | [React Hook Form](https://react-hook-form.com), [Zod](https://zod.dev) |
-| **Deployment** | [Vercel](https://vercel.com) |
+| Layer | Technology & Version | Purpose |
+|---|---|---|
+| **Framework** | [Next.js 16.4.0 (Turbopack, App Router)](https://nextjs.org) | Full-stack serverless rendering & Server Actions |
+| **Frontend** | [React 19.3.0](https://react.dev), [TypeScript 5](https://www.typescriptlang.org) | Server components, async state, and static typing |
+| **Styling & UI** | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com) | CSS-first dark theme & accessible Radix UI primitives |
+| **Backend & DB** | [Supabase](https://supabase.com) (`@supabase/supabase-js` v2.117, `@supabase/ssr` v0.12) | PostgreSQL, Row Level Security, Auth & Realtime CDC |
+| **Validation** | [React Hook Form 7.90](https://react-hook-form.com), [Zod 4.6](https://zod.dev) | High-performance client & server schema validation |
+| **Deployment** | [Vercel](https://vercel.com) | Global edge deployment and SSL automation |
+
+> 🧩 **Detailed Component Specs:** For the complete dependency matrix, Radix UI primitive breakdown, and UI component API reference, see [**`COMPONENTS.md`**](COMPONENTS.md).
 
 ---
 
@@ -150,6 +152,7 @@ CTFy/
 
 We welcome contributions from the community!
 - 🏛️ [**Architecture & System Design**](ARCHITECTURE.md): Technical deep-dive, sequence diagrams, and security architecture.
+- 🧩 [**Component Reference**](COMPONENTS.md): Complete dependency matrix, Radix UI primitives, and UI component inventory.
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
