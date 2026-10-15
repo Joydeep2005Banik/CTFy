@@ -141,12 +141,14 @@ CTFy/
 - **Zero-Secret Bundles:** Flag comparisons happen strictly inside `submitFlagAction` in [`src/lib/actions.ts`](./src/lib/actions.ts) using the privileged Supabase Service Role client.
 - **PIN Verification:** Access to challenge prompts is restricted to users who verify the 6-character PIN or are the verified creator of the event.
 - **Input Sanitization:** Flag inputs disable browser autofill, spellcheck, and credential-manager caching to prevent cross-account answer leaks on shared computers.
+- 🏛️ **Full Technical Breakdown:** See [**`ARCHITECTURE.md`**](ARCHITECTURE.md) for Mermaid sequence diagrams, database ERD, and real-time state synchronization flows.
 
 ---
 
 ## 🤝 Contributing & Community
 
 We welcome contributions from the community!
+- 🏛️ [**Architecture & System Design**](ARCHITECTURE.md): Technical deep-dive, sequence diagrams, and security architecture.
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
