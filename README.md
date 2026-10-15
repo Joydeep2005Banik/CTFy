@@ -153,6 +153,7 @@ We welcome contributions from the community!
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
 - 🐛 [**Issue Templates**](.github/ISSUE_TEMPLATE/): Report bugs or submit feature proposals.
+- 📜 [**Changelog**](CHANGELOG.md): Complete history of platform features and bug fixes.
 
 ---
 
