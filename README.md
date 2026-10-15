@@ -150,20 +150,28 @@ CTFy/
 
 ---
 
-## 📚 Documentation & Community
+## 🚩 Competition & Organizer Guides
 
-Explore the [**CTFy Documentation Hub (docs/)**](docs/README.md) for complete technical references and operational runbooks:
-
-### 🚩 Guides & Operations
+Whether you are hosting an event, designing challenges, or competing, explore our dedicated guides:
 - 📖 [**Hosting Guide**](docs/guides/HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](docs/guides/PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
 - 🧩 [**Challenge Authoring & Question Design**](docs/guides/CHALLENGE_AUTHORING.md): Blueprints for creating fair, engaging CTF challenges without containers.
 - 📋 [**Event Day Operations & Anti-Cheat Playbook**](docs/guides/EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, live errata, and podium verification.
 - 📜 [**Competition Rules Template**](docs/guides/COMPETITION_RULES_TEMPLATE.md): Turnkey tournament rules and code of conduct for organizers.
+
+---
+
+## 🚀 Deployment & Operations
+
+Production deployment procedures, self-hosting configurations, and tactical support:
 - 🚀 [**Deployment & Self-Hosting Guide**](docs/operations/DEPLOYMENT.md): Step-by-step instructions for Vercel, Docker, and Linux VPS self-hosting.
 - 🔍 [**Troubleshooting Guide & Runbook**](docs/operations/TROUBLESHOOTING.md): Solutions for email confirmation, PIN unlock, and realtime issues.
 
-### 🏛️ Architecture & Engineering
+---
+
+## 🏛️ Architecture & System Engineering
+
+In-depth technical architecture, data contracts, and codebase structure:
 - 🛠️ [**System Design & Engineering**](docs/architecture/SYSTEM_DESIGN.md): Concurrency model, high-throughput scaling, and fault tolerance.
 - 🏛️ [**Architecture & Data Flow**](docs/architecture/ARCHITECTURE.md): System topology, Mermaid sequence diagrams, and security architecture.
 - 🗄️ [**Database & RLS Reference**](docs/architecture/DATABASE.md): PostgreSQL data dictionary, indexes, and Row Level Security matrix.
@@ -171,13 +179,18 @@ Explore the [**CTFy Documentation Hub (docs/)**](docs/README.md) for complete te
 - 🌲 [**Project Structure & Codebase Map**](docs/architecture/PROJECT_STRUCTURE.md): Detailed visual tree and file-by-file breakdown.
 - 📦 [**Dependencies & Audit Compliance**](docs/architecture/DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
 
-### 🤝 Project Standards & Community
+---
+
+## 🤝 Community & Contributing
+
+Project standards, contribution workflows, and product roadmap:
 - 🗺️ [**Product Roadmap**](ROADMAP.md): Strategic vision, upcoming milestones (Team Mode, timers, dynamic scoring).
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
 - 🐛 [**Issue Templates**](.github/ISSUE_TEMPLATE/): Report bugs or submit feature proposals.
 - 📜 [**Changelog**](CHANGELOG.md): Complete history of platform features and bug fixes.
+- 📚 [**Documentation Hub**](docs/README.md): Central portal and index for all platform documentation.
 
 ---
 
