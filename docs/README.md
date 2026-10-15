@@ -16,6 +16,7 @@ Guides for organizers running events, challenge authors designing problems, and 
 | [**`PARTICIPANT_GUIDE.md`**](guides/PARTICIPANT_GUIDE.md) | Competitors | Step-by-step player guide covering account setup, PIN-based arena access, flag submission hygiene, and reading the live scoreboard. |
 | [**`CHALLENGE_AUTHORING.md`**](guides/CHALLENGE_AUTHORING.md) | Authors & Educators | Complete blueprints for designing rich Crypto, Forensics, Reverse Engineering, and Web challenges without requiring Docker containers. |
 | [**`EVENT_OPERATIONS.md`**](guides/EVENT_OPERATIONS.md) | Hosts & Directors | Minute-by-minute event day runbook, anti-cheat detection methods, live errata handling, and tie-breaking protocols. |
+| [**`COMPETITION_RULES_TEMPLATE.md`**](guides/COMPETITION_RULES_TEMPLATE.md) | Organizers | Turnkey ruleset and code of conduct template ready to copy and customize for hackathons and club CTFs. |
 
 ---
 
@@ -27,6 +28,8 @@ In-depth technical architecture, concurrency models, dependency audits, and code
 |---|---|---|
 | [**`ARCHITECTURE.md`**](architecture/ARCHITECTURE.md) | Core Engineering | High-level system topology, Mermaid sequence diagrams, database entity relationships (ERD), and the zero-leak server-side evaluation model. |
 | [**`SYSTEM_DESIGN.md`**](architecture/SYSTEM_DESIGN.md) | Performance & Scale | High-concurrency throughput (1,000+ competitors), Supavisor connection pooling (port 6543), Realtime Change Data Capture (CDC), and failure recovery. |
+| [**`DATABASE.md`**](architecture/DATABASE.md) | Data & Security | Complete PostgreSQL data dictionary, compound indexes, and Row Level Security (RLS) matrix. |
+| [**`API_REFERENCE.md`**](architecture/API_REFERENCE.md) | Server Actions | Full technical contract for server actions, Zod schemas, return types, and error handling. |
 | [**`PROJECT_STRUCTURE.md`**](architecture/PROJECT_STRUCTURE.md) | Codebase Map | File-by-file annotated reference, visual ASCII directory tree, component responsibilities, and end-to-end data flow tracing. |
 | [**`DEPENDENCIES.md`**](architecture/DEPENDENCIES.md) | SBOM & Compliance | Exhaustive package version matrix, shadcn/ui component registry, and 100% permissive open-source license compliance audit. |
 

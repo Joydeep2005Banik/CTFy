@@ -7,6 +7,7 @@ Whether you are running a collegiate hackathon, a university cybersecurity club 
 > 💡 **Specialized Guides:**
 > - For in-depth challenge templates across Crypto, Forensics, Web, and Rev, see [**`CHALLENGE_AUTHORING.md`**](CHALLENGE_AUTHORING.md).
 > - For the minute-by-minute competition day runbook and anti-cheat protocols, see [**`EVENT_OPERATIONS.md`**](EVENT_OPERATIONS.md).
+> - For a ready-to-use tournament handbook and fair-play ruleset, see [**`COMPETITION_RULES_TEMPLATE.md`**](COMPETITION_RULES_TEMPLATE.md).
 
 ---
 

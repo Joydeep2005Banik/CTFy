@@ -88,12 +88,15 @@ CTFy/
 ├── docs/                           # Categorized documentation hub
 │   ├── README.md                   # Documentation index & navigation portal
 │   ├── architecture/               # System topology, concurrency models & dependency SBOM
+│   │   ├── API_REFERENCE.md        # Server actions contract, Zod schemas & error catalog
 │   │   ├── ARCHITECTURE.md         # System topology, sequence diagrams, and security architecture
+│   │   ├── DATABASE.md             # Data dictionary, compound indexes & RLS matrix
 │   │   ├── DEPENDENCIES.md         # Package version matrix, license review, and UI registry
 │   │   ├── PROJECT_STRUCTURE.md    # File-by-file codebase reference & architecture map
 │   │   └── SYSTEM_DESIGN.md        # High-throughput scaling, concurrency & resilience
 │   ├── guides/                     # User, organizer & author guides
 │   │   ├── CHALLENGE_AUTHORING.md  # Challenge design blueprints & container-free authoring guide
+│   │   ├── COMPETITION_RULES_TEMPLATE.md # Turnkey ruleset & code of conduct template
 │   │   ├── EVENT_OPERATIONS.md     # Event day runbook, anti-cheat protocol, and podium audits
 │   │   ├── HOSTING_GUIDE.md        # Organizer guide for challenge design and PIN distribution
 │   │   └── PARTICIPANT_GUIDE.md    # Competitor guide for playing and submitting flags
