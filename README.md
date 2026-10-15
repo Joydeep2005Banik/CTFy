@@ -151,7 +151,10 @@ CTFy/
 ## 🤝 Contributing & Community
 
 We welcome contributions from the community!
-- 🏛️ [**Architecture & System Design**](ARCHITECTURE.md): Technical deep-dive, sequence diagrams, and security architecture.
+- 🛠️ [**System Design & Engineering**](SYSTEM_DESIGN.md): Concurrency model, high-throughput scaling, and fault tolerance.
+- 🏛️ [**Architecture & Data Flow**](ARCHITECTURE.md): System topology, Mermaid sequence diagrams, and security architecture.
+- 🌲 [**Project Structure & Codebase Map**](PROJECT_STRUCTURE.md): Detailed visual tree and file-by-file breakdown.
+- 🗺️ [**Product Roadmap**](ROADMAP.md): Strategic vision, upcoming milestones (Team Mode, timers, dynamic scoring).
 - 📦 [**Dependencies & Audit Compliance**](DEPENDENCIES.md): Full package version matrix, license review, and UI component registry.
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
 - 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
