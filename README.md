@@ -1,36 +1,158 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CTFy — Lightweight Capture The Flag Platform
 
-## Getting Started
+<p align="center">
+  <img src="public/icon.svg" width="72" height="72" alt="CTFy Flag" />
+</p>
 
-First, run the development server:
+<p align="center">
+  <strong>Fast, minimal, and container-free CTF platform for cybersecurity clubs, hackathons, and quiz competitions.</strong>
+</p>
 
+<p align="center">
+  <a href="https://ctfy-blush.vercel.app/"><img src="https://img.shields.io/badge/Live%20Demo-ctfy--blush.vercel.app-white?style=for-the-badge&logo=vercel&logoColor=black" alt="Live Demo" /></a>
+  <img src="https://img.shields.io/badge/Next.js-16.4-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/React-19.3-blue?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
+  <img src="https://img.shields.io/badge/Supabase-Database%20%26%20Realtime-emerald?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="https://img.shields.io/badge/Tailwind-CSS%20v4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
+  <img src="https://img.shields.io/badge/License-MIT-zinc?style=for-the-badge" alt="License" />
+</p>
+
+---
+
+## ⚡ Why CTFy?
+
+Traditional CTF platforms often require deploying heavy Docker containers, configuring nested virtual networks, and debugging flaky SSH jump-hosts just to run a quiz or security round.
+
+**CTFy changes that.** It is built for organizers who want to host fast, responsive flag-capture events in minutes without infrastructure headaches. You provide the prompts, hints, external assets, and flags—CTFy handles real-time submissions, server-side verification, and live scoreboards.
+
+> 📖 **Planning to run a competition?** Read our comprehensive [**Hosting Guide (HOSTING_GUIDE.md)**](HOSTING_GUIDE.md) covering challenge design, PIN distribution, and live event management!
+
+---
+
+## ✨ Features
+
+- 🎯 **Instant Event Creation:** Build multi-question CTFs with markdown prompts, external file/image links, point weights, and secret flags.
+- 🔑 **PIN-Gated Competition Arenas:** Events are guarded by unique 6-character access codes. Competitors cannot view or submit flags without unlocking the event.
+- 🛡️ **Zero-Leak Server Architecture:** Flags are verified strictly on the server via Next.js Server Actions. Secret answers are **never** delivered to client bundles or browser dev tools.
+- ⚡ **Realtime Live Scoreboard:** Watch ranks shift instantaneously. Driven by Supabase Realtime PostgreSQL listeners with instant point calculations and victory confetti.
+- 👤 **Isolated Participant Dashboards:** Clean distinction between "Hosted by You" and "Joined Competitions". Brand-new participants see a pristine zero-state with no leaked competitor events.
+- 🔒 **Cross-User Session Protection:** Strict client-state resets, user-scoped input keys, and autofill suppression prevent answer leakage between users on shared devices.
+- 🎨 **Minimalist Monochrome Cyber UI:** Ultra-fast, accessible dark-mode aesthetic built with Tailwind CSS v4 and shadcn/ui.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Framework** | [Next.js 16 (App Router, Turbopack)](https://nextjs.org) |
+| **Frontend** | [React 19](https://react.dev), [TypeScript 5](https://www.typescriptlang.org) |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com), [shadcn/ui](https://ui.shadcn.com), [Lucide Icons](https://lucide.dev) |
+| **Database & Auth** | [Supabase](https://supabase.com) (PostgreSQL, Row Level Security, Realtime, Auth) |
+| **Form Validation** | [React Hook Form](https://react-hook-form.com), [Zod](https://zod.dev) |
+| **Deployment** | [Vercel](https://vercel.com) |
+
+---
+
+## 🚀 Quick Start (Local Development)
+
+### 1. Prerequisites
+- [Node.js](https://nodejs.org) >= 20.x
+- [npm](https://www.npmjs.com) or [pnpm](https://pnpm.io)
+- A free [Supabase](https://supabase.com) project
+
+### 2. Clone Repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Joydeep2005Banik/CTFy.git
+cd CTFy
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Setup Supabase Database
+1. Go to your **[Supabase Dashboard](https://supabase.com/dashboard)** $\rightarrow$ **SQL Editor**.
+2. Open [`supabase/schema.sql`](./supabase/schema.sql) in this repository.
+3. Paste and run the entire script. This provisions:
+   - `profiles`, `events`, `questions`, and `submissions` tables
+   - Row Level Security (RLS) policies
+   - Automatic user profile sync triggers on signup
+   - Realtime publication on the `submissions` table
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4. Configure Environment Variables
+Create a `.env.local` file in the root directory (or copy from `.env.example`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env.local
+```
 
-## Learn More
+Fill in your project credentials from your Supabase Dashboard (**Project Settings** $\rightarrow$ **API**):
 
-To learn more about Next.js, take a look at the following resources:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 5. Run Development Server
+```bash
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Visit [`http://localhost:3000`](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📁 Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+CTFy/
+├── public/                 # Static assets & browser icons
+├── src/
+│   ├── app/                # Next.js App Router routes
+│   │   ├── dashboard/      # Participant & host dashboard
+│   │   ├── events/[id]/
+│   │   │   ├── host/       # Host event control deck
+│   │   │   ├── play/       # Competitor challenge arena (PIN-gated)
+│   │   │   └── scoreboard/ # Public/live realtime leaderboard
+│   │   ├── host/create/    # Event creation form
+│   │   ├── join/           # PIN-code quick event entrance
+│   │   ├── login/          # User authentication (Supabase Auth)
+│   │   ├── register/       # User registration
+│   │   ├── layout.tsx      # Root layout with brand metadata
+│   │   └── page.tsx        # Hero landing page
+│   ├── components/         # Reusable UI & navbar components
+│   │   ├── ui/             # shadcn/ui primitive components
+│   │   └── navbar.tsx      # Responsive navigation header
+│   └── lib/                # Core utilities, actions, and validations
+│       ├── actions.ts      # Server Actions (secure flag submissions & queries)
+│       ├── validations.ts  # Zod schema definitions
+│       ├── utils.ts        # Helper functions & localStorage caching
+│       └── supabase/       # Client & Server Supabase connectors
+└── supabase/
+    └── schema.sql          # Complete PostgreSQL schema, RLS, and triggers
+```
+
+---
+
+## 🔐 Security Architecture
+
+- **Server-Side Flag Evaluation:** Correct answers (`correct_answer`) in the `questions` table are hidden behind Row Level Security (RLS). The client is never granted direct select permissions on `correct_answer`.
+- **Zero-Secret Bundles:** Flag comparisons happen strictly inside `submitFlagAction` in [`src/lib/actions.ts`](./src/lib/actions.ts) using the privileged Supabase Service Role client.
+- **PIN Verification:** Access to challenge prompts is restricted to users who verify the 6-character PIN or are the verified creator of the event.
+- **Input Sanitization:** Flag inputs disable browser autofill, spellcheck, and credential-manager caching to prevent cross-account answer leaks on shared computers.
+
+---
+
+## 🤝 Contributing & Community
+
+We welcome contributions from the community!
+- 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
+- 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
+- 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
+- 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
+- 🐛 [**Issue Templates**](.github/ISSUE_TEMPLATE/): Report bugs or submit feature proposals.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE) — see the [LICENSE](LICENSE) file for details.
