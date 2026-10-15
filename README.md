@@ -162,6 +162,8 @@ We welcome contributions from the community!
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
 - 🐛 [**Issue Templates**](.github/ISSUE_TEMPLATE/): Report bugs or submit feature proposals.
+- 🚀 [**Deployment & Self-Hosting Guide**](DEPLOYMENT.md): Step-by-step instructions for Vercel, Docker, and Linux VPS self-hosting.
+- 🔍 [**Troubleshooting Guide & Runbook**](TROUBLESHOOTING.md): Solutions for email confirmation, PIN unlock, and realtime issues.
 - 📜 [**Changelog**](CHANGELOG.md): Complete history of platform features and bug fixes.
 
 ---

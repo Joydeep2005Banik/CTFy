@@ -90,11 +90,16 @@ CTFy/
 ├── CODE_OF_CONDUCT.md                      # Contributor Covenant v2.1
 ├── CONTRIBUTING.md                         # Contributor onboarding & codebase guide
 ├── DEPENDENCIES.md                         # Dependency matrix, UI registry & license audit
+├── DEPLOYMENT.md                           # Production deployment guide (Vercel, Docker, VPS)
 ├── HOSTING_GUIDE.md                        # Organizer guide for hosting & challenge design
 ├── LICENSE                                 # MIT License
 ├── PARTICIPANT_GUIDE.md                    # Competitor guide for playing & flag submissions
-├── README.md                               # Project landing document
+├── PROJECT_STRUCTURE.md                    # Exhaustive codebase reference & responsibility map
+├── README.md                               # Project landing document & documentation index
 ├── ROADMAP.md                              # Future vision, milestones & feature pipeline
+├── SECURITY.md                             # Responsible vulnerability disclosure policy
+├── SYSTEM_DESIGN.md                        # High-throughput scaling, concurrency & resilience
+├── TROUBLESHOOTING.md                      # Runbook for auth, PINs, scoring & realtime issues
 ├── package.json                            # Package manifests & scripts
 ├── package-lock.json                       # Cryptographic dependency lockfile
 └── tsconfig.json                           # TypeScript compiler configuration

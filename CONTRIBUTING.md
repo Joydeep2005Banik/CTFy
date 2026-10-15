@@ -86,9 +86,18 @@ CTFy/
 │   ├── workflows/ci.yml            # GitHub Actions CI build and lint verification
 │   └── ISSUE_TEMPLATE/             # Structured Bug Report and Feature Request forms
 ├── ARCHITECTURE.md                 # System topology, sequence diagrams, and security architecture
+├── CHANGELOG.md                    # Platform version history and release notes
+├── CODE_OF_CONDUCT.md              # Contributor Covenant v2.1 code of conduct
+├── CONTRIBUTING.md                 # Contributor onboarding, development workflow, and PR checklist
 ├── DEPENDENCIES.md                 # Package version matrix, license review, and UI registry
+├── DEPLOYMENT.md                   # Production deployment guide (Vercel, Docker, Linux VPS)
 ├── HOSTING_GUIDE.md                # Organizer guide for challenge design and PIN distribution
-└── PARTICIPANT_GUIDE.md            # Competitor guide for playing and submitting flags
+├── PARTICIPANT_GUIDE.md            # Competitor guide for playing and submitting flags
+├── PROJECT_STRUCTURE.md            # File-by-file codebase reference & architecture map
+├── ROADMAP.md                      # Strategic roadmap, milestones, and upcoming features
+├── SECURITY.md                     # Responsible disclosure and security reporting guidelines
+├── SYSTEM_DESIGN.md                # High-throughput scaling, concurrency & resilience
+└── TROUBLESHOOTING.md              # Solutions for auth, PINs, scoring & realtime issues
 ```
 
 ### Where Should You Make Your Changes?
