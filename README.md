@@ -25,7 +25,9 @@ Traditional CTF platforms often require deploying heavy Docker containers, confi
 
 **CTFy changes that.** It is built for organizers who want to host fast, responsive flag-capture events in minutes without infrastructure headaches. You provide the prompts, hints, external assets, and flags—CTFy handles real-time submissions, server-side verification, and live scoreboards.
 
-> 📖 **Planning to run a competition?** Read our comprehensive [**Hosting Guide (HOSTING_GUIDE.md)**](HOSTING_GUIDE.md) covering challenge design, PIN distribution, and live event management!
+> 📖 **Helpful Guides:**
+> - [**Hosting Guide (HOSTING_GUIDE.md)**](HOSTING_GUIDE.md): Challenge design, PIN distribution, and live event management for organizers.
+> - [**Participant Guide (PARTICIPANT_GUIDE.md)**](PARTICIPANT_GUIDE.md): Step-by-step instructions for competitors on joining via PIN, solving challenges, and submitting flags.
 
 ---
 
@@ -146,6 +148,7 @@ CTFy/
 
 We welcome contributions from the community!
 - 📖 [**Hosting Guide**](HOSTING_GUIDE.md): Master the art of designing and hosting CTF events.
+- 🎯 [**Participant Guide**](PARTICIPANT_GUIDE.md): How to join with a PIN code, submit flags, and track live standings.
 - 🛠️ [**Contributing Guide**](CONTRIBUTING.md): Workflow guidelines, branch standards, and PR instructions.
 - 📜 [**Code of Conduct**](CODE_OF_CONDUCT.md): Our community commitment to an inclusive environment.
 - 🔒 [**Security Policy**](SECURITY.md): Responsible vulnerability disclosure guidelines.
