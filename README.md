@@ -1,48 +1,64 @@
-# CTFy — Lightweight Capture The Flag Platform
+<p align="center">
+  <img src="public/marketing-assets/ctfy_logo.png" alt="CTFy Logo" width="140" />
+</p>
+
+# CTFy
+
+> **Fast, minimal, and container-free CTF platform for cybersecurity clubs, hackathons, and quiz competitions.**
 
 <p align="center">
-  <img src="public/icon.svg" width="72" height="72" alt="CTFy Flag" />
+  <a href="https://ctfy-blush.vercel.app/">
+    <img src="https://img.shields.io/badge/Open-CTFy_Web-0284c7?style=flat&logo=vercel" alt="Open CTFy Web" />
+  </a>
+  <a href="https://ctfy-blush.vercel.app/host/create">
+    <img src="https://img.shields.io/badge/Host-Create_Arena-6366f1?style=flat" alt="Host Arena" />
+  </a>
+  <a href="https://ctfy-blush.vercel.app/">
+    <img src="https://img.shields.io/badge/Website-ctfy--blush.vercel.app-10b981?style=flat" alt="Website" />
+  </a>
 </p>
 
 <p align="center">
-  <strong>Fast, minimal, and container-free CTF platform for cybersecurity clubs, hackathons, and quiz competitions.</strong>
-</p>
-
-<p align="center">
-  <a href="https://ctfy-blush.vercel.app/"><img src="https://img.shields.io/badge/Live%20Demo-ctfy--blush.vercel.app-white?style=for-the-badge&logo=vercel&logoColor=black" alt="Live Demo" /></a>
-  <a href="https://github.com/Joydeep2005Banik/CTFy/actions"><img src="https://github.com/Joydeep2005Banik/CTFy/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
-  <img src="https://img.shields.io/badge/Next.js-16.4-black?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
-  <img src="https://img.shields.io/badge/React-19.3-blue?style=for-the-badge&logo=react&logoColor=white" alt="React 19" />
-  <img src="https://img.shields.io/badge/Supabase-Database%20%26%20Realtime-emerald?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
-  <img src="https://img.shields.io/badge/Tailwind-CSS%20v4-38bdf8?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4" />
-  <img src="https://img.shields.io/badge/License-MIT-zinc?style=for-the-badge" alt="License" />
+  <img src="https://img.shields.io/badge/version-v0.1.0-blue.svg" alt="Version 0.1.0" />
+  <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License" />
+  <img src="https://img.shields.io/badge/platform-Next.js%2016%20%7C%20Web-lightgrey.svg" alt="Platforms" />
+  <img src="https://img.shields.io/badge/backend-Supabase%20Realtime-orange.svg" alt="Supabase Realtime" />
 </p>
 
 ---
 
-## ⚡ Why CTFy?
+![CTFy Hero Arena](public/marketing-assets/ctfy-hero-clean.png)
+
+<p align="center">
+  <em>Host. Compete. Capture. Score.</em><br />
+  A modern CTF competition platform combining PIN-gated arenas, real-time Supabase scoreboards, instant server-side flag verification, and zero-leak security — built for speed and simplicity.
+</p>
+
+---
+
+## Why CTFy?
 
 Traditional CTF platforms often require deploying heavy Docker containers, configuring nested virtual networks, and debugging flaky SSH jump-hosts just to run a quiz or security round.
 
-**CTFy changes that.** It is built for organizers who want to host fast, responsive flag-capture events in minutes without infrastructure headaches. You provide the prompts, hints, external assets, and flags—CTFy handles real-time submissions, server-side verification, and live scoreboards.
-
-> 📖 **Helpful Guides:**
-> - [**Hosting Guide**](docs/guides/HOSTING_GUIDE.md): Challenge design, PIN distribution, and live event management for organizers.
-> - [**Participant Guide**](docs/guides/PARTICIPANT_GUIDE.md): Step-by-step instructions for competitors on joining via PIN, solving challenges, and submitting flags.
-> - [**Challenge Authoring Guide**](docs/guides/CHALLENGE_AUTHORING.md): Blueprints for designing Crypto, Forensics, Web, and Rev challenges without containers.
-> - [**Event Day Operations Playbook**](docs/guides/EVENT_OPERATIONS.md): Operational timeline, anti-cheat detection, hint drops, and tie-breaking runbook.
+CTFy bridges competition design and instant live hosting into a single, distraction-free environment. You get real-time PIN-gated arenas with markdown challenges and downloadable assets, alongside Supabase-replicated live scoreboards and host telemetry — with zero container maintenance, zero client secret leaks, and full server-side flag verification.
 
 ---
 
-## ✨ Features
+## Features
 
-- 🎯 **Instant Event Creation:** Build multi-question CTFs with markdown prompts, external file/image links, point weights, and secret flags.
-- 🔑 **PIN-Gated Competition Arenas:** Events are guarded by unique 6-character access codes. Competitors cannot view or submit flags without unlocking the event.
-- 🛡️ **Zero-Leak Server Architecture:** Flags are verified strictly on the server via Next.js Server Actions. Secret answers are **never** delivered to client bundles or browser dev tools.
-- ⚡ **Realtime Live Scoreboard:** Watch ranks shift instantaneously. Driven by Supabase Realtime PostgreSQL listeners with instant point calculations and victory confetti.
-- 👤 **Isolated Participant Dashboards:** Clean distinction between "Hosted by You" and "Joined Competitions". Brand-new participants see a pristine zero-state with no leaked competitor events.
-- 🔒 **Cross-User Session Protection:** Strict client-state resets, user-scoped input keys, and autofill suppression prevent answer leakage between users on shared devices.
-- 🎨 **Minimalist Monochrome Cyber UI:** Ultra-fast, accessible dark-mode aesthetic built with Tailwind CSS v4 and shadcn/ui.
+✦ **Instant event creation**: Build multi-question CTFs with markdown prompts, external file/image links, point weights, and secret flags in minutes.  
+✦ **PIN-gated competition arenas**: Unique 6-character access codes lock arenas. Competitors cannot view or submit flags without unlocking the event.  
+✦ **Zero-leak server architecture**: Flags are verified strictly on the server via Next.js Server Actions. Secret answers are never delivered to client bundles or browser dev tools.  
+✦ **Real-time live scoreboard**: Instant rank shifts powered by Supabase Realtime PostgreSQL listeners with dynamic podium calculations and victory confetti.  
+✦ **Isolated participant dashboards**: Clean distinction between "Hosted by You" and "Joined Competitions", providing pristine zero-states with no competitor data leakage.  
+✦ **Cross-user session protection**: Strict client-state resets, user-scoped input keys, and autofill suppression prevent answer leakage between users on shared devices.  
+✦ **Minimalist monochrome cyber UI**: Ultra-fast, accessible dark-mode aesthetic built with Tailwind CSS v4 and shadcn/ui.
+
+| PIN-Gated Arena & Play | Live Realtime Scoreboard |
+|:---:|:---:|
+| ![Arena & Play](public/marketing-assets/ctfy-arena.png) | ![Live Scoreboard](public/marketing-assets/ctfy-scoreboard.png) |
+| **Host Telemetry Deck** | **Event Question Builder** |
+| ![Host Deck](public/marketing-assets/ctfy-host.png) | ![Question Builder](public/marketing-assets/ctfy-builder.png) |
 
 ---
 
@@ -112,7 +128,8 @@ Visit [`http://localhost:3000`](http://localhost:3000) in your browser.
 
 ```text
 CTFy/
-├── public/                 # Static assets & browser icons
+├── public/                 # Static assets & marketing previews
+│   └── marketing-assets/   # Clean screenshot captures & brand logo
 ├── src/
 │   ├── app/                # Next.js App Router routes
 │   │   ├── dashboard/      # Participant & host dashboard
