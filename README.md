@@ -27,7 +27,7 @@
 
 ---
 
-![CTFy Hero Arena](public/marketing-assets/ctfy-hero-clean.png)
+![CTFy Landing Page](public/marketing-assets/landing_page.png)
 
 <p align="center">
   <em>Host. Compete. Capture. Score.</em><br />
@@ -56,9 +56,9 @@ CTFy bridges competition design and instant live hosting into a single, distract
 
 | PIN-Gated Arena & Play | Live Realtime Scoreboard |
 |:---:|:---:|
-| ![Arena & Play](public/marketing-assets/ctfy-arena.png) | ![Live Scoreboard](public/marketing-assets/ctfy-scoreboard.png) |
+| ![Arena & Play](public/marketing-assets/pingatedarea.png) | ![Live Scoreboard](public/marketing-assets/scoreboard.png) |
 | **Host Telemetry Deck** | **Event Question Builder** |
-| ![Host Deck](public/marketing-assets/ctfy-host.png) | ![Question Builder](public/marketing-assets/ctfy-builder.png) |
+| ![Host Deck](public/marketing-assets/hostdeck.png) | ![Question Builder](public/marketing-assets/questionbuilder.png) |
 
 ---
 
