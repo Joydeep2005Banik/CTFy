@@ -112,19 +112,24 @@ function PlayArenaContent() {
         }
       }
 
-      // 2. Fetch Event & Sanitized Questions
-      const res = await getEventQuestionnaireAction(eventId);
-      if (!res.success || !res.event) {
+      // 2. Fetch Event & Sanitized Questions (Passing saved PIN if available)
+      let storedPin: string | undefined = undefined;
+      if (typeof window !== "undefined") {
+        storedPin = localStorage.getItem(`ctfy_pin_${eventId}`) || undefined;
+      }
+
+      const res = await getEventQuestionnaireAction(eventId, storedPin);
+      if (!res.event) {
         setError(res.error || "Event not found");
         setLoading(false);
         return;
       }
 
-      setEvent(res.event);
+      setEvent(res.event as unknown as CTFEvent);
       setQuestions(res.questions || []);
 
       const isHost = res.event.host_id === currentUserId;
-      const alreadyUnlocked = isEventUnlocked(eventId);
+      const isUnlockedServer = Boolean(res.success && !res.isLocked);
       let hasPastSubs = false;
 
       // 3. Fetch past submissions of this user to restore solved questions
@@ -161,7 +166,7 @@ function PlayArenaContent() {
         }
       }
 
-      setIsUnlocked(isHost || alreadyUnlocked || hasPastSubs);
+      setIsUnlocked(isHost || isUnlockedServer);
       setLoading(false);
     }
 
@@ -169,30 +174,30 @@ function PlayArenaContent() {
   }, [eventId]);
 
   const handleUnlockPin = async () => {
-    const clean = gatePin.trim();
+    const clean = gatePin.trim().toUpperCase();
     if (!clean) return;
     setUnlocking(true);
     setGateError(null);
 
     try {
-      if (event && clean.toUpperCase() === event.pin_code.trim().toUpperCase()) {
-        markEventUnlocked(eventId);
+      // Backend PIN verification: Questions are returned only if PIN matches
+      const res = await getEventQuestionnaireAction(eventId, clean);
+      if (res.success && res.questions && !res.isLocked) {
+        setQuestions(res.questions);
+        if (res.event) setEvent(res.event as unknown as CTFEvent);
         setIsUnlocked(true);
-        setUnlocking(false);
-        return;
-      }
-
-      const res = await findEventByPinAction(clean);
-      if (res.success && res.event && res.event.id === eventId) {
+        if (typeof window !== "undefined") {
+          localStorage.setItem(`ctfy_pin_${eventId}`, clean);
+        }
         markEventUnlocked(eventId);
-        setIsUnlocked(true);
       } else {
-        setGateError("Incorrect competition PIN code. Please verify with the event host.");
+        setGateError(res.error || "Incorrect competition PIN code. Please verify with the event host.");
       }
     } catch {
       setGateError("Failed to verify PIN code. Please try again.");
+    } finally {
+      setUnlocking(false);
     }
-    setUnlocking(false);
   };
 
   // Tick timer for countdowns
@@ -532,9 +537,11 @@ function PlayArenaContent() {
               <Badge variant="success" className="font-mono text-[10px]">
                 ARENA LIVE
               </Badge>
-              <span className="text-xs font-mono text-zinc-500">
-                PIN: {event.pin_code}
-              </span>
+              {event.pin_code && (
+                <span className="text-xs font-mono text-zinc-500">
+                  PIN: {event.pin_code}
+                </span>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {event.title}

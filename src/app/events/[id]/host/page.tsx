@@ -83,8 +83,18 @@ function HostContent() {
         .eq("id", eventId)
         .single();
 
+      // Fetch PIN for Host (Host-only RLS allows host to query event_pins)
+      const { data: pinData } = await supabase
+        .from("event_pins")
+        .select("pin_code")
+        .eq("event_id", eventId)
+        .maybeSingle();
+
       if (eventData) {
-        setEvent(eventData);
+        setEvent({
+          ...eventData,
+          pin_code: pinData?.pin_code || (eventData as any).pin_code || "N/A",
+        });
       }
 
       // Fetch Submissions
@@ -145,7 +155,7 @@ function HostContent() {
   }, [eventId]);
 
   const handleCopyPin = () => {
-    if (!event) return;
+    if (!event || !event.pin_code) return;
     navigator.clipboard.writeText(event.pin_code);
     setCopiedPin(true);
     setTimeout(() => setCopiedPin(false), 2000);

@@ -66,15 +66,15 @@ function ScoreboardContent() {
         setEvent(eventData);
       }
 
-      // Fetch Submissions
+      // Fetch Submissions (Explicitly omitting submitted_answer to prevent flag leaks)
       const { data: subsData } = await supabase
         .from("submissions")
-        .select("*, profiles(id, username)")
+        .select("id, event_id, question_id, user_id, is_correct, points_awarded, created_at, profiles(id, username)")
         .eq("event_id", eventId)
         .order("created_at", { ascending: false });
 
       if (subsData) {
-        setLeaderboard(computeLeaderboard(subsData as Submission[]));
+        setLeaderboard(computeLeaderboard(subsData as unknown as Submission[]));
       }
 
       setLoading(false);
@@ -91,14 +91,14 @@ function ScoreboardContent() {
             filter: `event_id=eq.${eventId}`,
           },
           async () => {
-            // Re-fetch all submissions to recalculate rank standings
+            // Re-fetch all submissions to recalculate rank standings (safe columns only)
             const { data: freshSubs } = await supabase
               .from("submissions")
-              .select("*, profiles(id, username)")
+              .select("id, event_id, question_id, user_id, is_correct, points_awarded, created_at, profiles(id, username)")
               .eq("event_id", eventId);
 
             if (freshSubs) {
-              setLeaderboard(computeLeaderboard(freshSubs as Submission[]));
+              setLeaderboard(computeLeaderboard(freshSubs as unknown as Submission[]));
             }
           }
         )
@@ -156,9 +156,11 @@ function ScoreboardContent() {
               <Badge variant="points" className="font-mono text-[10px]">
                 {status === "active" ? "LIVE REALTIME STANDINGS" : "FINAL LEADERBOARD"}
               </Badge>
-              <span className="text-xs font-mono text-zinc-500">
-                PIN: {event.pin_code}
-              </span>
+              {event.pin_code && (
+                <span className="text-xs font-mono text-zinc-500">
+                  PIN: {event.pin_code}
+                </span>
+              )}
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2.5">
               <Trophy className="h-7 w-7 text-amber-400" />

@@ -39,7 +39,10 @@ export default function JoinEventPage() {
         return;
       }
 
-      // Valid PIN! Mark event as unlocked and navigate to play arena
+      // Valid PIN! Store verified PIN and navigate to play arena
+      if (typeof window !== "undefined") {
+        localStorage.setItem(`ctfy_pin_${res.event.id}`, cleanPin);
+      }
       markEventUnlocked(res.event.id);
       router.push(`/events/${res.event.id}/play`);
     } catch (err: unknown) {
@@ -123,7 +126,7 @@ export default function JoinEventPage() {
                       <button
                         key={ev.id}
                         type="button"
-                        onClick={() => handleQuickPin(ev.pin_code)}
+                        onClick={() => handleQuickPin(ev.pin_code || "")}
                         className="px-2.5 py-1 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs font-mono text-zinc-300 transition-colors flex items-center gap-1.5"
                       >
                         <span className="text-zinc-500">{ev.title.slice(0, 14)}…:</span>

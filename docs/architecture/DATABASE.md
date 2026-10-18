@@ -1,8 +1,8 @@
-# Database Architecture & RLS Security Reference 🗄️
+# Database Architecture & Hardened RLS Security Reference 🗄️
 
 This document provides the complete data dictionary, relational schema, indexing strategy, and Row Level Security (RLS) matrix for **CTFy**. 
 
-CTFy utilizes **PostgreSQL** hosted on **Supabase** with logical replication (CDC) enabled for real-time scoreboard synchronization.
+CTFy utilizes **PostgreSQL** hosted on **Supabase** with logical replication (CDC) enabled for real-time scoreboard synchronization, hardened against client-side flag extraction, score forgery, and PIN scraping.
 
 ---
 
@@ -11,8 +11,10 @@ CTFy utilizes **PostgreSQL** hosted on **Supabase** with logical replication (CD
 2. [Table Data Dictionary](#2-table-data-dictionary)
    - [`profiles`](#profiles)
    - [`events`](#events)
+   - [`event_pins`](#event_pins)
    - [`questions`](#questions)
    - [`submissions`](#submissions)
+   - [`submission_logs`](#submission_logs)
 3. [Indexing & Query Optimization](#3-indexing--query-optimization)
 4. [Row Level Security (RLS) Policy Matrix](#4-row-level-security-rls-policy-matrix)
 5. [Database Triggers & Automated Profiles](#5-database-triggers--automated-profiles)
@@ -27,10 +29,12 @@ CTFy utilizes **PostgreSQL** hosted on **Supabase** with logical replication (CD
 erDiagram
     auth_users ||--|| profiles : "extends via handle_new_user()"
     profiles ||--o{ events : "hosts (host_id)"
-    profiles ||--o{ submissions : "submits (user_id)"
+    events ||--|| event_pins : "isolated access code (event_id)"
     events ||--o{ questions : "contains (event_id)"
     events ||--o{ submissions : "records (event_id)"
+    profiles ||--o{ submissions : "submits (user_id)"
     questions ||--o{ submissions : "evaluates (question_id)"
+    submissions ||--|| submission_logs : "private audit log (submission_id)"
 
     profiles {
         uuid id PK "references auth.users"
@@ -41,10 +45,15 @@ erDiagram
     events {
         uuid id PK "gen_random_uuid()"
         text title "competition title"
-        text pin_code UK "6-char entry code"
         uuid host_id FK "references profiles(id)"
         timestamptz start_time "UTC start time"
         timestamptz end_time "UTC end time"
+        timestamptz created_at
+    }
+
+    event_pins {
+        uuid event_id PK,FK "references events(id)"
+        text pin_code UK "6-char entry code (Host-Only RLS)"
         timestamptz created_at
     }
 
@@ -53,7 +62,7 @@ erDiagram
         uuid event_id FK "references events(id)"
         text prompt "markdown problem statement"
         text media_url "optional asset URL"
-        text correct_answer "SECRET: never exposed to client"
+        text correct_answer "SECRET: Host-only RLS"
         int points "point value"
         int order_index "display sequence"
     }
@@ -63,10 +72,19 @@ erDiagram
         uuid event_id FK "references events(id)"
         uuid question_id FK "references questions(id)"
         uuid user_id FK "references profiles(id)"
-        text submitted_answer "player submission"
         boolean is_correct "evaluation result"
         int points_awarded "points given (0 or question.points)"
         timestamptz created_at "used for tie-breaking"
+    }
+
+    submission_logs {
+        uuid id PK "gen_random_uuid()"
+        uuid submission_id FK "references submissions(id)"
+        uuid event_id FK "references events(id)"
+        uuid question_id FK "references questions(id)"
+        uuid user_id FK "references profiles(id)"
+        text submitted_answer "private answer attempt (Submitter & Host only)"
+        timestamptz created_at
     }
 ```
 
@@ -86,13 +104,12 @@ Extends `auth.users` to provide public usernames for scoreboards without exposin
 ---
 
 ### `events`
-Stores competition metadata, access PINs, scheduling windows, and host ownership.
+Stores public competition metadata, scheduling windows, and host ownership. `pin_code` is isolated in `event_pins` to prevent public scraping.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
 | `id` | `uuid` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Unique event identifier. |
 | `title` | `text` | `NOT NULL` | Name of the CTF competition. |
-| `pin_code` | `text` | `NOT NULL`, `UNIQUE` | 6-character alphanumeric code required to enter the arena. |
 | `host_id` | `uuid` | `NOT NULL`, `REFERENCES profiles(id) ON DELETE CASCADE` | Creator/organizer of the competition. |
 | `start_time` | `timestamptz` | `NOT NULL` | Scheduled competition start (stored in UTC). |
 | `end_time` | `timestamptz` | `NOT NULL` | Scheduled competition close (stored in UTC). |
@@ -100,8 +117,19 @@ Stores competition metadata, access PINs, scheduling windows, and host ownership
 
 ---
 
+### `event_pins`
+Protected table storing competition PIN access codes. Protected by host-only Row Level Security.
+
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `event_id` | `uuid` | `PRIMARY KEY`, `REFERENCES events(id) ON DELETE CASCADE` | Target event. |
+| `pin_code` | `text` | `NOT NULL`, `UNIQUE` | 6-character access PIN. Accessible only by the host. |
+| `created_at` | `timestamptz` | `NOT NULL`, `DEFAULT now()` | Creation timestamp. |
+
+---
+
 ### `questions`
-Contains challenge prompts, points, media links, and the secret flag answer.
+Contains challenge prompts, points, media links, and the secret flag answer. **Direct SELECT is restricted strictly to the event host.**
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
@@ -109,64 +137,84 @@ Contains challenge prompts, points, media links, and the secret flag answer.
 | `event_id` | `uuid` | `NOT NULL`, `REFERENCES events(id) ON DELETE CASCADE` | Associated event. |
 | `prompt` | `text` | `NOT NULL` | Markdown-supported problem statement and hints. |
 | `media_url` | `text` | `NULLABLE` | Link to external PCAP, binary, or image download. |
-| `correct_answer` | `text` | `NOT NULL` | **CRITICAL SECRET:** Secret flag. Shielded by server actions and RLS. |
+| `correct_answer` | `text` | `NOT NULL` | **CRITICAL SECRET:** Secret flag. Shielded by host-only RLS and server actions. |
 | `points` | `integer` | `NOT NULL`, `DEFAULT 10` | Points awarded upon first successful capture. |
 | `order_index` | `integer` | `NOT NULL`, `DEFAULT 0` | Sequence order inside the competition arena. |
 
 ---
 
 ### `submissions`
-High-write log recording every flag submission attempt, evaluation outcome, and points awarded.
+Public scoreboard table recording flag captures, timestamps, and awarded points. **Does NOT contain plaintext answers**, completely eliminating flag leakage via public SELECT or Supabase Realtime streams.
 
 | Column | Type | Constraints | Description |
 |---|---|---|---|
-| `id` | `uuid` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Unique submission log record. |
+| `id` | `uuid` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Unique submission record. |
 | `event_id` | `uuid` | `NOT NULL`, `REFERENCES events(id) ON DELETE CASCADE` | Target event. |
 | `question_id` | `uuid` | `NOT NULL`, `REFERENCES questions(id) ON DELETE CASCADE` | Target challenge. |
 | `user_id` | `uuid` | `NOT NULL`, `REFERENCES profiles(id) ON DELETE CASCADE` | Submitting player. |
-| `submitted_answer` | `text` | `NOT NULL` | Raw string input submitted by the user. |
 | `is_correct` | `boolean` | `NOT NULL`, `DEFAULT false` | True if the submission matched `correct_answer`. |
 | `points_awarded` | `integer` | `NOT NULL`, `DEFAULT 0` | Points granted (0 for incorrect or duplicate solves). |
 | `created_at` | `timestamptz` | `NOT NULL`, `DEFAULT now()` | Exact submission timestamp (used for tie-breaking). |
 
 ---
 
-## 3. Indexing & Query Optimization
+### `submission_logs`
+Private audit trail logging raw answer attempts. Accessible exclusively by the submitter and the event host.
 
-To maintain sub-50ms queries under heavy concurrent flag submissions, the schema defines five targeted compound and single-column indexes:
+| Column | Type | Constraints | Description |
+|---|---|---|---|
+| `id` | `uuid` | `PRIMARY KEY`, `DEFAULT gen_random_uuid()` | Log entry ID. |
+| `submission_id` | `uuid` | `REFERENCES submissions(id) ON DELETE CASCADE` | Associated public submission record. |
+| `event_id` | `uuid` | `NOT NULL`, `REFERENCES events(id) ON DELETE CASCADE` | Target event. |
+| `question_id` | `uuid` | `NOT NULL`, `REFERENCES questions(id) ON DELETE CASCADE` | Target question. |
+| `user_id` | `uuid` | `NOT NULL`, `REFERENCES profiles(id) ON DELETE CASCADE` | Player who submitted. |
+| `submitted_answer` | `text` | `NOT NULL` | Raw flag attempt string. |
+| `created_at` | `timestamptz` | `NOT NULL`, `DEFAULT now()` | Log timestamp. |
+
+---
+
+## 3. Indexing & Query Optimization
 
 | Index Name | Table | Columns | Optimized Query Pattern |
 |---|---|---|---|
-| `idx_events_pin` | `events` | `pin_code` | Instant O(1) PIN lookups when unlocking an arena (`findEventByPinAction`). |
+| `idx_event_pins` | `event_pins` | `pin_code` | Instant O(1) PIN lookups when unlocking an arena (`findEventByPinAction`). |
 | `idx_events_host` | `events` | `host_id` | Dashboard queries filtering "Hosted by You" events. |
 | `idx_questions_event` | `questions` | `event_id, order_index ASC` | Arena loading in display sequence. |
-| `idx_submissions_event` | `submissions` | `event_id, created_at DESC` | Host Deck live ingestion feed and Realtime broadcast streaming. |
-| `idx_submissions_user_question` | `submissions` | `user_id, question_id, is_correct` | Sub-millisecond verification of whether a user already solved a challenge. |
+| `idx_submissions_event` | `submissions` | `event_id, created_at DESC` | Live scoreboard aggregation and Realtime broadcast streaming. |
+| `idx_submissions_user_question` | `submissions` | `user_id, question_id, is_correct` | Sub-millisecond duplicate solve verification. |
+| `idx_submission_logs_event` | `submission_logs` | `event_id, created_at DESC` | Host Deck live audit log feed. |
 
 ---
 
 ## 4. Row Level Security (RLS) Policy Matrix
 
-PostgreSQL Row Level Security (RLS) guarantees that unprivileged browser connections cannot tamper with data or steal secret flags:
+PostgreSQL Row Level Security (RLS) guarantees that unprivileged browser connections cannot tamper with data, forge scores, or extract secret flags:
 
-| Table | Operation | `anon` (Unauthenticated) | `authenticated` (Participant) | `service_role` (Backend Secret) |
+| Table | Operation | `anon` (Unauthenticated) | `authenticated` (Participant) | `service_role` (Backend Admin) |
 |---|---|---|---|---|
 | **`profiles`** | `SELECT` | ✅ View all | ✅ View all | ✅ Full Access |
 | | `INSERT` | ❌ Denied | ✅ Own record (`auth.uid() = id`) | ✅ Full Access |
 | | `UPDATE` | ❌ Denied | ✅ Own record (`auth.uid() = id`) | ✅ Full Access |
-| **`events`** | `SELECT` | ✅ View all | ✅ View all | ✅ Full Access |
+| **`events`** | `SELECT` | ✅ View all (Titles, Times) | ✅ View all (Titles, Times) | ✅ Full Access |
 | | `INSERT` | ❌ Denied | ✅ If `host_id = auth.uid()` | ✅ Full Access |
 | | `UPDATE` | ❌ Denied | ✅ If `host_id = auth.uid()` | ✅ Full Access |
 | | `DELETE` | ❌ Denied | ✅ If `host_id = auth.uid()` | ✅ Full Access |
-| **`questions`** | `SELECT` | ❌ Denied | ⚠️ Read all (Host only sees `correct_answer` via UI) | ✅ Full Access |
-| | `INSERT` | ❌ Denied | ✅ If Event Host | ✅ Full Access |
-| | `UPDATE` | ❌ Denied | ✅ If Event Host | ✅ Full Access |
+| **`event_pins`** | `SELECT` | ❌ Denied | 🔒 Host Only (`host_id = auth.uid()`) | ✅ Full Access |
+| | `INSERT` | ❌ Denied | 🔒 Host Only (`host_id = auth.uid()`) | ✅ Full Access |
+| **`questions`** | `SELECT` | ❌ Denied | 🔒 Host Only (Participants use Server Actions) | ✅ Full Access |
+| | `INSERT` | ❌ Denied | 🔒 If Event Host | ✅ Full Access |
+| | `UPDATE` | ❌ Denied | 🔒 If Event Host | ✅ Full Access |
 | **`submissions`** | `SELECT` | ✅ View all (Scoreboard) | ✅ View all (Scoreboard) | ✅ Full Access |
-| | `INSERT` | ❌ Denied | ✅ Own submissions (`auth.uid() = user_id`) | ✅ Full Access |
-| | `UPDATE` | ❌ Denied | ❌ Denied (Logs are immutable) | ✅ Full Access |
+| | `INSERT` | ❌ Denied | ❌ Denied (Blocked to prevent score forgery) | ✅ Full Access |
+| | `UPDATE` | ❌ Denied | ❌ Denied (Submissions are immutable) | ✅ Full Access |
+| **`submission_logs`** | `SELECT` | ❌ Denied | 🔒 Submitter (`auth.uid() = user_id`) or Host | ✅ Full Access |
+| | `INSERT` | ❌ Denied | ❌ Denied (Created exclusively via Server Action) | ✅ Full Access |
 
-> 🔒 **The Flag Secrecy Guarantee:** 
-> Even though participants have SELECT permissions on `questions`, the Next.js frontend **never queries `questions` directly from the browser**. Challenge prompts are loaded via sanitized server actions (`getPublicQuestionsAction`) which explicitly strip the `correct_answer` column before returning JSON to the client.
+> 🛡️ **Zero-Trust Guarantees:**
+> 1. **Zero-Leak Flags:** Competitors have NO direct table SELECT on `questions`. Challenge prompts are delivered only through `getEventQuestionnaireAction` which strips `correct_answer` and requires backend PIN verification.
+> 2. **Unforgeable Scores:** Direct client `INSERT` into `submissions` is revoked. Only the backend `submitFlagAction` (using `service_role`) can write submissions after server-side answer verification.
+> 3. **Clean Scoreboards:** `submissions` contains no plaintext flags, ensuring Realtime WebSocket broadcasts never leak answers.
+> 4. **Protected PINs:** Event PINs are stored in `event_pins` with host-only access. Competitors cannot scrape PINs from the `events` table.
 
 ---
 
@@ -205,76 +253,12 @@ create trigger on_auth_user_created
 
 ## 6. Realtime Logical Replication (CDC)
 
-CTFy leverages PostgreSQL logical decoding to push instantaneous scoreboard updates over WebSockets:
+CTFy leverages PostgreSQL logical decoding to push instantaneous scoreboard updates over WebSockets without leaking answers:
 
 ```sql
--- Adds the submissions table to the Supabase Realtime publication
-alter publication supabase_realtime add table public.submissions;
-```
-
-When a user submits a flag:
-1. `submitFlagAction` inserts a record into `public.submissions`.
-2. PostgreSQL emits an `INSERT` event to the WAL (Write-Ahead Log).
-3. The Supabase Realtime server reads the WAL and broadcasts the payload to all clients subscribed to `event-${eventId}-submissions`.
-4. The client's `useRealtimeScoreboard` hook recalculates ranks, triggers podium animations, and displays confetti.
-
----
-
-## 7. Essential DBA & Maintenance Queries
-
-### Recipe 1: Export Complete Competition Scoreboard to CSV
-Execute in the Supabase SQL Editor:
-```sql
-select 
-  dense_rank() over (order by sum(s.points_awarded) desc, max(s.created_at) asc) as rank,
-  p.username,
-  sum(s.points_awarded) as total_points,
-  count(distinct s.question_id) filter (where s.is_correct) as flags_captured,
-  max(s.created_at) as last_solve_time
-from public.submissions s
-join public.profiles p on p.id = s.user_id
-where s.event_id = '<YOUR_EVENT_ID>'
-group by p.id, p.username
-order by rank asc;
-```
-
----
-
-### Recipe 2: Safely Purge Test Submissions Before Event Launch
-Remove all test solves made during organizer dry-runs:
-```sql
-delete from public.submissions
-where event_id = '<YOUR_EVENT_ID>';
-```
-
----
-
-### Recipe 3: Recalculate Points Following a Challenge Point Value Change
-If an organizer updates a question's points from 100 to 200 mid-event:
-```sql
-update public.submissions s
-set points_awarded = q.points
-from public.questions q
-where s.question_id = q.id
-  and s.event_id = '<YOUR_EVENT_ID>'
-  and s.is_correct = true;
-```
-
----
-
-### Recipe 4: Anti-Cheat — Detect Submission Bursts (Brute Force Detection)
-Identify users submitting more than 10 attempts in a 60-second window:
-```sql
-select 
-  user_id,
-  p.username,
-  count(*) as attempt_count,
-  min(s.created_at) as burst_start,
-  max(s.created_at) as burst_end
-from public.submissions s
-join public.profiles p on p.id = s.user_id
-where s.event_id = '<YOUR_EVENT_ID>'
-group by user_id, p.username, date_trunc('minute', s.created_at)
-having count(*) > 10
-order by attempt_count desc;
+-- Adds safe public tables to the Supabase Realtime publication
+begin;
+  drop publication if exists supabase_realtime;
+  create publication supabase_realtime for table public.submissions, public.events;
+commit;
 ```

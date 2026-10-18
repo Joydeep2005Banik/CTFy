@@ -77,9 +77,23 @@ export default function DashboardPage() {
           .eq("host_id", session.user.id)
           .order("created_at", { ascending: false });
 
+        const pinMap: Record<string, string> = {};
+        if (hostedList && hostedList.length > 0) {
+          const { data: pins } = await supabase
+            .from("event_pins")
+            .select("event_id, pin_code")
+            .in("event_id", hostedList.map((h: any) => h.id));
+          if (pins) {
+            pins.forEach((p: any) => {
+              pinMap[p.event_id] = p.pin_code;
+            });
+          }
+        }
+
         if (hostedList) {
           const mappedHosted: CTFEvent[] = hostedList.map((e: any) => ({
             ...e,
+            pin_code: pinMap[e.id] || e.pin_code,
             _count: {
               questions: e.questions ? e.questions.length : 0,
               submissions: e.submissions ? e.submissions.length : 0,
@@ -274,20 +288,22 @@ export default function DashboardPage() {
                             )}
 
                             {/* PIN Code with Copy button for host */}
-                            <button
-                              type="button"
-                              onClick={() => handleCopyPin(event.pin_code)}
-                              title="Click to copy PIN for participants"
-                              className="flex items-center gap-1 font-mono text-xs text-zinc-300 bg-zinc-900/90 hover:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-800 transition-colors"
-                            >
-                              <Hash className="h-3 w-3 text-emerald-400" />
-                              <span className="font-bold">{event.pin_code}</span>
-                              {copiedPin === event.pin_code ? (
-                                <Check className="h-3 w-3 text-emerald-400 ml-0.5" />
-                              ) : (
-                                <Copy className="h-3 w-3 text-zinc-500 ml-0.5" />
-                              )}
-                            </button>
+                            {event.pin_code && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPin(event.pin_code!)}
+                                title="Click to copy PIN for participants"
+                                className="flex items-center gap-1 font-mono text-xs text-zinc-300 bg-zinc-900/90 hover:bg-zinc-800 px-2 py-0.5 rounded border border-zinc-800 transition-colors"
+                              >
+                                <Hash className="h-3 w-3 text-emerald-400" />
+                                <span className="font-bold">{event.pin_code}</span>
+                                {copiedPin === event.pin_code ? (
+                                  <Check className="h-3 w-3 text-emerald-400 ml-0.5" />
+                                ) : (
+                                  <Copy className="h-3 w-3 text-zinc-500 ml-0.5" />
+                                )}
+                              </button>
+                            )}
                           </div>
 
                           <CardTitle className="text-base line-clamp-1 text-white">

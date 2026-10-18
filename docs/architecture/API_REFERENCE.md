@@ -14,7 +14,7 @@ CTFy uses Server Actions instead of standard REST endpoints to eliminate client 
    - [`checkEventHostAction`](#checkeventhostaction)
    - [`getEventMetricsAction`](#geteventmetricsaction)
 3. [Competition Arena Actions](#3-competition-arena-actions)
-   - [`getPublicQuestionsAction`](#getpublicquestionsaction)
+   - [`getEventQuestionnaireAction`](#geteventquestionnaireaction)
    - [`submitFlagAction`](#submitflagaction)
 4. [Standard Return Formats & Error Codes](#4-standard-return-formats--error-codes)
 5. [Frontend Invocation Patterns](#5-frontend-invocation-patterns)
@@ -147,13 +147,19 @@ async function getEventMetricsAction(eventId: string): Promise<{
 
 ## 3. Competition Arena Actions
 
-### `getPublicQuestionsAction`
+### `getEventQuestionnaireAction`
 Fetches the sanitized challenge questionnaire for an event. **Guaranteed to never return `correct_answer`.**
+Enforces backend PIN verification: if the caller is not the event host and has not supplied a matching `pinCode`, `isLocked: true` and an empty question set (`questions: []`) are returned.
 
 #### Signature:
 ```typescript
-async function getPublicQuestionsAction(eventId: string): Promise<{
+async function getEventQuestionnaireAction(
+  eventId: string,
+  pinCode?: string
+): Promise<{
   success: boolean;
+  isLocked?: boolean;
+  event?: Partial<CTFEvent>;
   questions?: PublicQuestion[];
   error?: string;
 }>
@@ -172,10 +178,16 @@ interface PublicQuestion {
 }
 ```
 
+#### Verification Pipeline:
+1. **Host Bypass:** If the authenticated session matches `event.host_id`, access is granted unconditionally and `event.pin_code` is returned for host reference.
+2. **PIN Code Matching:** If not the host, the sanitized `pinCode` argument is matched server-side against `event_pins.pin_code` via privileged service role query.
+3. **Locked Response:** If unverified, the action responds with `isLocked: true`, safe event metadata, and `questions: []`, preventing unauthorized scraping.
+4. **Unlocked Response:** If verified, returns sanitized questions (`id, event_id, prompt, media_url, points, order_index`) without exposing `correct_answer` or `pin_code`.
+
 ---
 
 ### `submitFlagAction`
-**Core Flag Verification Action.** Enforces competition time windows, checks for duplicate solves, evaluates answers using the privileged server client, records the submission, and awards points.
+**Core Flag Verification Action.** Enforces competition time windows, checks for duplicate solves, evaluates answers using the privileged server client, records the submission, awards points, and saves audit trails.
 
 #### Signature:
 ```typescript
@@ -203,7 +215,8 @@ async function submitFlagAction(params: {
    * If found: Returns `already_solved: true, points_awarded: 0`.
 4. **Answer Comparison:** Retrieves `correct_answer` via the privileged Service Role client. Performs an exact string match after trimming leading and trailing whitespace:
    $$\text{is\_correct} = (\text{submittedAnswer.trim()} === \text{correct\_answer.trim()})$$
-5. **Log Insertion:** Inserts the attempt into `public.submissions`, emitting a Supabase Realtime CDC event to live scoreboards.
+5. **Scoreboard Insertion (Zero-Leak):** Inserts into `public.submissions` without `submitted_answer` (null) to prevent flag leakage across Supabase Realtime broadcast channels.
+6. **Audit Trail Logging:** Inserts private log into `public.submission_logs` protected by strict submitter/host-only RLS policies.
 
 #### Responses:
 * **Correct Capture:**

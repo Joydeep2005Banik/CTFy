@@ -1,5 +1,5 @@
 -- ==============================================================================
--- CTFy - Capture The Flag Platform: PostgreSQL Schema & Policies
+-- CTFy - Capture The Flag Platform: Hardened PostgreSQL Schema & RLS Policies
 -- ==============================================================================
 
 -- 1. Profiles Table
@@ -9,58 +9,110 @@ create table if not exists public.profiles (
   created_at timestamptz not null default now()
 );
 
--- 2. Events Table
+-- 2. Events Table (PIN code isolated into event_pins table to prevent leakage)
 create table if not exists public.events (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  pin_code text unique not null,
   host_id uuid not null references public.profiles(id) on delete cascade,
   start_time timestamptz not null,
   end_time timestamptz not null,
   created_at timestamptz not null default now()
 );
 
--- 3. Questions Table
+-- 2b. Event PINs Table (Strict Host-Only Row Level Security)
+create table if not exists public.event_pins (
+  event_id uuid primary key references public.events(id) on delete cascade,
+  pin_code text unique not null,
+  created_at timestamptz not null default now()
+);
+
+-- Migration fallback: If pin_code was on events table, migrate to event_pins and remove
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns 
+    where table_schema = 'public' and table_name = 'events' and column_name = 'pin_code'
+  ) then
+    insert into public.event_pins (event_id, pin_code)
+    select id, pin_code from public.events
+    on conflict (event_id) do nothing;
+    
+    alter table public.events drop column if exists pin_code;
+  end if;
+end $$;
+
+-- 3. Questions Table (correct_answer kept strictly private to hosts)
 create table if not exists public.questions (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
   prompt text not null,
   media_url text,
-  correct_answer text not null, -- Kept secret on server, NEVER exposed to client
+  correct_answer text not null, -- Kept secret on server, NEVER exposed to competitors
   points integer not null default 10,
   order_index integer not null default 0
 );
 
--- 4. Submissions Table
+-- Sanitized Public View for Competitors (Excludes correct_answer)
+create or replace view public.public_questions as
+  select id, event_id, prompt, media_url, points, order_index
+  from public.questions;
+
+-- 4. Submissions Table (Contains scoring data, NO plaintext flag answers to prevent realtime leaks)
 create table if not exists public.submissions (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references public.events(id) on delete cascade,
   question_id uuid not null references public.questions(id) on delete cascade,
   user_id uuid not null references public.profiles(id) on delete cascade,
-  submitted_answer text not null,
+  submitted_answer text, -- Kept NULL to prevent leakage across Realtime and public SELECT
   is_correct boolean not null default false,
   points_awarded integer not null default 0,
   created_at timestamptz not null default now()
 );
 
+-- 5. Submission Logs Table (Private audit trail: Only submitter and host can inspect)
+create table if not exists public.submission_logs (
+  id uuid primary key default gen_random_uuid(),
+  submission_id uuid references public.submissions(id) on delete cascade,
+  event_id uuid not null references public.events(id) on delete cascade,
+  question_id uuid not null references public.questions(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  submitted_answer text not null,
+  created_at timestamptz not null default now()
+);
+
+-- Migration fallback: If submitted_answer contains answers in submissions, clear it
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns 
+    where table_schema = 'public' and table_name = 'submissions' and column_name = 'submitted_answer'
+  ) then
+    alter table public.submissions alter column submitted_answer drop not null;
+    update public.submissions set submitted_answer = null;
+  end if;
+end $$;
+
 -- Indexes for high-throughput leaderboard and PIN lookups
-create index if not exists idx_events_pin on public.events(pin_code);
+create index if not exists idx_event_pins on public.event_pins(pin_code);
 create index if not exists idx_events_host on public.events(host_id);
 create index if not exists idx_questions_event on public.questions(event_id, order_index asc);
 create index if not exists idx_submissions_event on public.submissions(event_id, created_at desc);
 create index if not exists idx_submissions_user_question on public.submissions(user_id, question_id, is_correct);
+create index if not exists idx_submission_logs_event on public.submission_logs(event_id, created_at desc);
 
--- Enable Row Level Security (RLS)
+-- Enable Row Level Security (RLS) across all tables
 alter table public.profiles enable row level security;
 alter table public.events enable row level security;
+alter table public.event_pins enable row level security;
 alter table public.questions enable row level security;
 alter table public.submissions enable row level security;
+alter table public.submission_logs enable row level security;
 
 -- ==============================================================================
--- RLS POLICIES
+-- RLS POLICIES (HARDENED ZERO-LEAK MODEL)
 -- ==============================================================================
 
--- Profiles: Anyone can view usernames (for scoreboards/event cards), users manage own
+-- Profiles: Anyone can view usernames, users manage their own
 drop policy if exists "Profiles are viewable by everyone" on public.profiles;
 create policy "Profiles are viewable by everyone"
   on public.profiles for select
@@ -76,7 +128,8 @@ create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = id);
 
--- Events: Anyone can view events, hosts can insert/update/delete
+-- Events: Anyone can view general event metadata (Title, Start/End, Host).
+-- NOTE: pin_code is NOT on this table, completely preventing PIN scraping.
 drop policy if exists "Events are viewable by everyone" on public.events;
 create policy "Events are viewable by everyone"
   on public.events for select
@@ -98,8 +151,21 @@ create policy "Hosts can delete their own events"
   on public.events for delete
   using (auth.uid() = host_id);
 
--- Questions: Host can read all fields (including correct_answer)
--- Note: Participants read question prompts via sanitized server actions or public_questions view
+-- Event PINs: STRICTLY HOST-ONLY. Competitors CANNOT read event_pins table.
+drop policy if exists "Hosts can view own event pin" on public.event_pins;
+create policy "Hosts can view own event pin"
+  on public.event_pins for all
+  using (
+    exists (
+      select 1 from public.events
+      where events.id = event_pins.event_id
+      and events.host_id = auth.uid()
+    )
+  );
+
+-- Questions: ONLY the host has direct table access (including correct_answer).
+-- Competitors receive questions ONLY via sanitized Server Actions after PIN verification.
+drop policy if exists "Authenticated participants can view questions" on public.questions;
 drop policy if exists "Hosts have full access to questions" on public.questions;
 create policy "Hosts have full access to questions"
   on public.questions for all
@@ -111,23 +177,28 @@ create policy "Hosts have full access to questions"
     )
   );
 
-drop policy if exists "Authenticated participants can view questions" on public.questions;
-create policy "Authenticated participants can view questions"
-  on public.questions for select
-  to authenticated
-  using (true);
-
--- Submissions: Anyone can view for leaderboard, users can insert their own
+-- Submissions: Scoreboard data is viewable by everyone (points, correct status).
+-- DIRECT CLIENT INSERTION IS STRICTLY REVOKED to prevent forged scores.
+-- Submissions are created exclusively through server actions or the submit_flag RPC.
 drop policy if exists "Submissions are viewable by everyone for leaderboard" on public.submissions;
 create policy "Submissions are viewable by everyone for leaderboard"
   on public.submissions for select
   using (true);
 
 drop policy if exists "Users can insert own submissions" on public.submissions;
-create policy "Users can insert own submissions"
-  on public.submissions for insert
-  to authenticated
-  with check (auth.uid() = user_id);
+
+-- Submission Logs: Only the user who submitted and the event host can inspect attempts.
+drop policy if exists "Submitter and host can inspect submission logs" on public.submission_logs;
+create policy "Submitter and host can inspect submission logs"
+  on public.submission_logs for select
+  using (
+    auth.uid() = user_id or
+    exists (
+      select 1 from public.events
+      where events.id = submission_logs.event_id
+      and events.host_id = auth.uid()
+    )
+  );
 
 -- ==============================================================================
 -- AUTOMATIC PROFILE CREATION TRIGGER
@@ -152,15 +223,14 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Trigger execution on auth.users insert
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
 -- ==============================================================================
--- ATOMIC SERVER FUNCTION: SUBMIT & VERIFY FLAG
--- Prevents duplicate awards, enforces time-gating, ensures atomic point award
+-- ATOMIC SERVER FUNCTION: SUBMIT & VERIFY FLAG (SECURITY DEFINER)
+-- Enforces time-gating, server-side exact match, duplicate prevention, and zero answer leaks
 -- ==============================================================================
 create or replace function public.submit_flag(
   p_event_id uuid,
@@ -223,7 +293,7 @@ begin
     );
   end if;
 
-  -- 4. Exact match check (trimmed, case-sensitive or standard flag comparison)
+  -- 4. Server-Side Exact Match Verification
   v_is_correct := (trim(p_submitted_answer) = trim(v_question.correct_answer));
   if v_is_correct then
     v_points := v_question.points;
@@ -231,12 +301,11 @@ begin
     v_points := 0;
   end if;
 
-  -- 5. Record submission
+  -- 5. Record Public Submission (NO submitted_answer to prevent Realtime leaks)
   insert into public.submissions (
     event_id,
     question_id,
     user_id,
-    submitted_answer,
     is_correct,
     points_awarded
   )
@@ -244,11 +313,26 @@ begin
     p_event_id,
     p_question_id,
     v_user_id,
-    trim(p_submitted_answer),
     v_is_correct,
     v_points
   )
   returning id into v_submission_id;
+
+  -- 6. Record Private Audit Log
+  insert into public.submission_logs (
+    submission_id,
+    event_id,
+    question_id,
+    user_id,
+    submitted_answer
+  )
+  values (
+    v_submission_id,
+    p_event_id,
+    p_question_id,
+    v_user_id,
+    trim(p_submitted_answer)
+  );
 
   return jsonb_build_object(
     'success', true,
@@ -261,9 +345,8 @@ begin
 end;
 $$;
 
--- Enable Realtime for Submissions Table (for live scoreboard)
+-- Enable Realtime for Submissions Table (Contains NO plaintext flags, 100% safe to stream)
 begin;
-  -- Add submissions to publication if not already present
   drop publication if exists supabase_realtime;
   create publication supabase_realtime for table public.submissions, public.events;
 commit;

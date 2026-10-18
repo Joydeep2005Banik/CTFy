@@ -4,9 +4,9 @@ import { z } from "zod";
 import { createClient as createServerSupabase, isSupabaseConfigured } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { CTFEvent, PublicQuestion, Question, Submission, getEventStatus } from "./types";
-import { INITIAL_MOCK_EVENTS, INITIAL_MOCK_QUESTIONS, INITIAL_MOCK_SUBMISSIONS, DEMO_HOST, DEMO_USER } from "./mock-data";
+import { INITIAL_MOCK_EVENTS, INITIAL_MOCK_QUESTIONS, INITIAL_MOCK_SUBMISSIONS, DEMO_USER } from "./mock-data";
 
-import { CreateEventSchema, QuestionSchema, EventFormValues } from "./validations";
+import { CreateEventSchema } from "./validations";
 
 function ensureUtcIso(timeStr: string, offsetMinutes?: number): string {
   // If already has ISO timezone indicator like 'Z' or '+05:30' or '-04:00'
@@ -94,23 +94,25 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
     return { success: false, error: "Authentication required to host an event." };
   }
 
-  // Check pin code uniqueness
-  const { data: existingPin } = await supabase
-    .from("events")
-    .select("id")
-    .eq("pin_code", pin_code)
+  const cleanPin = pin_code.trim().toUpperCase();
+  const adminSupabase = createAdminClient();
+
+  // Check pin code uniqueness in event_pins
+  const { data: existingPin } = await adminSupabase
+    .from("event_pins")
+    .select("event_id")
+    .eq("pin_code", cleanPin)
     .maybeSingle();
 
   if (existingPin) {
     return { success: false, error: "This PIN code is already taken. Please choose another or generate one." };
   }
 
-  // 1. Insert Event
-  const { data: event, error: eventError } = await supabase
+  // 1. Insert Event (pin_code is omitted to prevent public scraping)
+  const { data: event, error: eventError } = await adminSupabase
     .from("events")
     .insert({
       title,
-      pin_code,
       host_id: user.id,
       start_time: finalStartTime,
       end_time: finalEndTime,
@@ -122,7 +124,19 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
     return { success: false, error: eventError?.message || "Failed to create event." };
   }
 
-  // 2. Insert Questions
+  // 1b. Insert PIN into isolated event_pins table (Host-Only RLS)
+  const { error: pinInsertError } = await adminSupabase
+    .from("event_pins")
+    .insert({
+      event_id: event.id,
+      pin_code: cleanPin,
+    });
+
+  if (pinInsertError) {
+    return { success: false, error: pinInsertError.message };
+  }
+
+  // 2. Insert Questions via admin client
   const questionsToInsert = questions.map((q, idx) => ({
     event_id: event.id,
     prompt: q.prompt,
@@ -132,7 +146,7 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
     order_index: idx,
   }));
 
-  const { error: questionsError } = await supabase
+  const { error: questionsError } = await adminSupabase
     .from("questions")
     .insert(questionsToInsert);
 
@@ -143,7 +157,7 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
   return {
     success: true,
     eventId: event.id,
-    pinCode: event.pin_code,
+    pinCode: cleanPin,
   };
 }
 
@@ -151,14 +165,14 @@ export async function createEventAction(formData: z.infer<typeof CreateEventSche
 // Server Action: Join / Find Event by PIN
 // ==============================================================================
 export async function findEventByPinAction(pin: string) {
-  const cleanPin = pin.trim();
+  const cleanPin = pin.trim().toUpperCase();
   if (!cleanPin) {
     return { success: false, error: "Please enter a PIN code." };
   }
 
   if (!isSupabaseConfigured()) {
     const mock = INITIAL_MOCK_EVENTS.find(
-      (e) => e.pin_code.toLowerCase() === cleanPin.toLowerCase()
+      (e) => e.pin_code?.toLowerCase() === cleanPin.toLowerCase()
     );
     if (!mock) {
       return { success: false, error: "No CTF found matching this PIN code." };
@@ -168,22 +182,31 @@ export async function findEventByPinAction(pin: string) {
       event: {
         id: mock.id,
         title: mock.title,
-        pin_code: mock.pin_code,
         start_time: mock.start_time,
         end_time: mock.end_time,
       },
     };
   }
 
-  const supabase = await createServerSupabase();
-  const { data: event, error } = await supabase
-    .from("events")
-    .select("id, title, pin_code, start_time, end_time")
+  const adminSupabase = createAdminClient();
+  const { data: pinRow, error: pinErr } = await adminSupabase
+    .from("event_pins")
+    .select("event_id")
     .eq("pin_code", cleanPin)
     .maybeSingle();
 
-  if (error || !event) {
+  if (pinErr || !pinRow) {
     return { success: false, error: "No CTF found matching this PIN code. Verify with the host." };
+  }
+
+  const { data: event, error: eventErr } = await adminSupabase
+    .from("events")
+    .select("id, title, start_time, end_time")
+    .eq("id", pinRow.event_id)
+    .single();
+
+  if (eventErr || !event) {
+    return { success: false, error: "Event not found." };
   }
 
   return { success: true, event };
@@ -344,19 +367,33 @@ export async function submitFlagAction({
   );
   const points_awarded = is_correct ? question.points : 0;
 
-  // 5. Insert submission
-  const { error: subErr } = await supabase.from("submissions").insert({
-    event_id: eventId,
-    question_id: questionId,
-    user_id: user.id,
-    submitted_answer: cleanAnswer,
-    is_correct,
-    points_awarded,
-  });
+  // 5. Insert submission via admin client (Service Role)
+  // Direct client insert on 'submissions' is blocked by RLS to prevent score forgery.
+  // Note: submitted_answer is omitted to prevent Realtime/public scoreboard leakage.
+  const { data: newSub, error: subErr } = await adminSupabase
+    .from("submissions")
+    .insert({
+      event_id: eventId,
+      question_id: questionId,
+      user_id: user.id,
+      is_correct,
+      points_awarded,
+    })
+    .select()
+    .single();
 
   if (subErr) {
     return { success: false, error: subErr.message };
   }
+
+  // 6. Record private audit log (Only submitter and host can inspect)
+  await adminSupabase.from("submission_logs").insert({
+    submission_id: newSub?.id,
+    event_id: eventId,
+    question_id: questionId,
+    user_id: user.id,
+    submitted_answer: cleanAnswer,
+  });
 
   return {
     success: true,
@@ -370,30 +407,65 @@ export async function submitFlagAction({
 }
 
 // ==============================================================================
-// Server Action: Get Event Questionnaire (Sanitized, NO correct_answer)
+// Server Action: Get Event Questionnaire (Sanitized, Backend PIN-Gated)
+// Questions are ONLY returned if caller is Host OR supplies valid event PIN
 // ==============================================================================
-export async function getEventQuestionnaireAction(eventId: string) {
+export async function getEventQuestionnaireAction(eventId: string, pinCode?: string) {
   if (!isSupabaseConfigured()) {
     const event = INITIAL_MOCK_EVENTS.find((e) => e.id === eventId);
     if (!event) return { success: false, error: "Event not found" };
 
+    const cleanPin = pinCode?.trim().toUpperCase();
+    const eventPin = (event.pin_code || "").trim().toUpperCase();
+
+    // Verify PIN in demo mode if provided or check if matching
+    const isUnlocked = cleanPin && cleanPin === eventPin;
+
+    if (!isUnlocked) {
+      return {
+        success: false,
+        isLocked: true,
+        error: "Valid competition PIN required to access challenges.",
+        event: {
+          id: event.id,
+          title: event.title,
+          host_id: event.host_id,
+          start_time: event.start_time,
+          end_time: event.end_time,
+          created_at: event.created_at,
+          host: event.host,
+        },
+        questions: [],
+      };
+    }
+
     const questions = INITIAL_MOCK_QUESTIONS[eventId] || [];
-    // Sanitize: strip correct_answer
     const sanitizedQuestions: PublicQuestion[] = questions.map(
-      ({ correct_answer, ...rest }) => rest
+      ({ correct_answer: _correct_answer, ...rest }) => rest
     );
 
     return {
       success: true,
-      event,
+      isLocked: false,
+      event: {
+        ...event,
+        pin_code: cleanPin,
+      },
       questions: sanitizedQuestions,
     };
   }
 
   const supabase = await createServerSupabase();
-  const { data: event, error: eventErr } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const adminSupabase = createAdminClient();
+
+  // Fetch Event metadata (without PIN)
+  const { data: event, error: eventErr } = await adminSupabase
     .from("events")
-    .select("*, host:profiles(username)")
+    .select("id, title, host_id, start_time, end_time, created_at, host:profiles(username)")
     .eq("id", eventId)
     .single();
 
@@ -401,8 +473,40 @@ export async function getEventQuestionnaireAction(eventId: string) {
     return { success: false, error: "Event not found" };
   }
 
-  // Fetch only sanitized fields
-  const { data: questions, error: qErr } = await supabase
+  // Fetch event PIN from isolated event_pins table
+  const { data: pinRow } = await adminSupabase
+    .from("event_pins")
+    .select("pin_code")
+    .eq("event_id", eventId)
+    .maybeSingle();
+
+  const actualPin = pinRow?.pin_code || "";
+  const isHost = user && user.id === event.host_id;
+
+  // Backend verification: Must be Host OR provide exact matching PIN
+  const cleanPin = pinCode?.trim().toUpperCase();
+  const isPinValid = Boolean(cleanPin && actualPin && cleanPin === actualPin.toUpperCase());
+
+  if (!isHost && !isPinValid) {
+    return {
+      success: false,
+      isLocked: true,
+      error: "Valid competition PIN required to access challenges.",
+      event: {
+        id: event.id,
+        title: event.title,
+        host_id: event.host_id,
+        start_time: event.start_time,
+        end_time: event.end_time,
+        created_at: event.created_at,
+        host: event.host,
+      },
+      questions: [],
+    };
+  }
+
+  // Verified: Fetch sanitized question fields via admin client
+  const { data: questions, error: qErr } = await adminSupabase
     .from("questions")
     .select("id, event_id, prompt, media_url, points, order_index")
     .eq("event_id", eventId)
@@ -414,7 +518,11 @@ export async function getEventQuestionnaireAction(eventId: string) {
 
   return {
     success: true,
-    event,
-    questions: questions as PublicQuestion[],
+    isLocked: false,
+    event: {
+      ...event,
+      pin_code: isHost ? actualPin : undefined,
+    },
+    questions: (questions || []) as PublicQuestion[],
   };
 }

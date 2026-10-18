@@ -7,7 +7,7 @@ export interface Profile {
 export interface CTFEvent {
   id: string;
   title: string;
-  pin_code: string;
+  pin_code?: string;
   host_id: string;
   start_time: string;
   end_time: string;
@@ -37,7 +37,7 @@ export interface Submission {
   event_id: string;
   question_id: string;
   user_id: string;
-  submitted_answer: string;
+  submitted_answer?: string;
   is_correct: boolean;
   points_awarded: number;
   created_at: string;
