@@ -15,6 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Export scoreboard standings and submission logs to CSV.
 - Optional hints with customizable point deduction penalties.
 
+## [0.1.1] - 2026-10-18
+
+### Security & Hardening
+- **Flag Disclosure Prevention:** Revoked public PostgREST SELECT policies on `questions`. Challenge questions are now queried exclusively by hosts or delivered to competitors via sanitized Server Actions and `public_questions` view without `correct_answer`.
+- **Score Forgery Prevention:** Dropped client INSERT RLS policy on `submissions`. Direct insertion through client-side anon keys is permanently rejected; all solves and score awards are strictly computed and inserted via privileged server actions.
+- **Scoreboard Realtime Eavesdropping Fix:** Purged plaintext flags from `submissions.submitted_answer` and created an isolated `submission_logs` table accessible only to submitters and hosts. Live WebSocket CDC events now stream zero flag answers.
+- **Backend PIN Gate Enforcement:** Segregated competition access PINs from `events` into an isolated `event_pins` table protected by host-only RLS. Enforced backend PIN verification in `getEventQuestionnaireAction` and `findEventByPinAction` before returning challenge questionnaires.
+- **Zero-Leak Type Safety:** Updated `pin_code` and `submitted_answer` types across client models to be optional, preventing TypeScript errors and ensuring compile-time contract integrity.
+
 ---
 
 ## [0.1.0] - 2026-10-15

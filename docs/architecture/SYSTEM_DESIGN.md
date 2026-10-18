@@ -72,9 +72,11 @@ graph TD
 
 ### 2. High-Throughput Indexing
 To keep flag validation and leaderboard queries under 10ms regardless of database volume:
-- `idx_events_pin`: Hash-based index on `events.pin_code` for $O(1)$ PIN validation.
+- `idx_event_pins`: Index on `event_pins.pin_code` for $O(1)$ PIN validation.
 - `idx_questions_event`: Composite index on `questions(event_id, order_index asc)` for instant challenge rendering.
 - `idx_submissions_user_question`: Composite index on `submissions(user_id, question_id, is_correct)` preventing duplicate score awards in a single indexed scan.
+- `idx_submissions_event`: Index on `submissions(event_id, created_at desc)` for high-throughput scoreboard recalculation.
+- `idx_submission_logs_event`: Index on `submission_logs(event_id, created_at desc)` for host audit monitoring.
 
 ---
 
@@ -92,16 +94,18 @@ sequenceDiagram
     actor Audience as Spectators / Scoreboard
 
     Solver->>Action: POST flag ("CTFy{secret}")
-    Action->>DB: INSERT into submissions (is_correct=true, points=50)
-    DB-->>Realtime: Write-Ahead Log (WAL) Change Event
+    Action->>DB: INSERT into submissions (is_correct=true, points=50, submitted_answer=NULL)
+    Action->>DB: INSERT into submission_logs (submitted_answer="CTFy{secret}")
+    DB-->>Realtime: Write-Ahead Log (WAL) Change Event (NO PLAINTEXT FLAG)
     Realtime-->>Audience: WebSocket Message: { event: "INSERT", table: "submissions" }
     Note over Audience: Scoreboard dynamically increments Alice's score by 50
+    Note over Audience: Zero flag leakage across spectator connections
     Note over Audience: Podium dynamically re-ranks top 3 without page refresh
 ```
 
 ### WebSocket Channel Multiplexing:
-- **Scoreboard Channel:** Subscribes to `submissions` filtered by `event_id=eq.{id}`. Only receives submissions relevant to the active competition.
-- **Host Channel:** Subscribes to live audit stream, receiving both correct and incorrect attempt notices for organizer monitoring.
+- **Scoreboard Channel:** Subscribes to `submissions` filtered by `event_id=eq.{id}`. Only receives submissions relevant to the active competition. Because `submitted_answer` is nullified on `submissions`, competitors eavesdropping on WebSocket traffic receive zero flags.
+- **Host Channel:** Subscribes to live audit stream, receiving both correct and incorrect attempt notices for organizer monitoring via private `submission_logs`.
 
 ---
 
@@ -121,20 +125,23 @@ sequenceDiagram
 ```
 [Untrusted Client: Competitor Browser]
        │
-       │ (1) Cannot query questions.correct_answer (BLOCKED BY RLS)
-       │ (2) Cannot select other users' submissions (BLOCKED BY RLS)
+       │ (1) Cannot query questions directly or read correct_answer (BLOCKED BY RLS)
+       │ (2) Cannot query event_pins or scrape PIN codes (BLOCKED BY RLS)
+       │ (3) Cannot insert into submissions to forge scores (BLOCKED BY RLS)
+       │ (4) Cannot read plain flags from submissions or Realtime (NULLIFIED BY DESIGN)
        ▼
 [Trusted Boundary: Next.js Server Action]
        │
-       │ (3) Validates authenticated session cookie
-       │ (4) Uses Supabase Service Role Key to read secret flag
-       │ (5) Compares strings inside Node.js memory
+       │ (5) Validates authenticated session cookie
+       │ (6) Uses Supabase Service Role Key to read secret flag from questions
+       │ (7) Compares strings inside Node.js memory
        ▼
 [Protected Database: Supabase PostgreSQL]
        │
-       │ (6) Inserts verified record into public.submissions
+       │ (8) Inserts verified telemetry into public.submissions (for scoreboard)
+       │ (9) Inserts protected audit record into public.submission_logs (host only)
 ```
 
 1. **Client Isolation:** The client receives only a boolean pass/fail status and points awarded.
-2. **Database Isolation:** Row Level Security (RLS) ensures that even if a competitor acquires the public Anon API key, they cannot query answers or tamper with other competitors' submissions.
+2. **Database Isolation:** Row Level Security (RLS) ensures that even if a competitor acquires the public Anon API key, they cannot query answers, tamper with scores, or view other competitors' attempts.
 3. **Admin Isolation:** Host control tools (`/events/[id]/host`) verify that the active user's ID matches `event.host_id` before rendering metrics or submission logs.

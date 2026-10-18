@@ -47,8 +47,8 @@ CTFy bridges competition design and instant live hosting into a single, distract
 ## Features
 
 ✦ **Instant event creation**: Build multi-question CTFs with markdown prompts, external file/image links, point weights, and secret flags in minutes.  
-✦ **PIN-gated competition arenas**: Unique 6-character access codes lock arenas. Competitors cannot view or submit flags without unlocking the event.  
-✦ **Zero-leak server architecture**: Flags are verified strictly on the server via Next.js Server Actions. Secret answers are never delivered to client bundles or browser dev tools.  
+✦ **PIN-gated competition arenas**: Unique 6-character access codes lock arenas behind backend verification. Competitors cannot view challenges or submit flags without unlocking the event.  
+✦ **Zero-leak server architecture**: Isolated secret tables (`event_pins`), host-only RLS policies, server-side flag validation, and zero plaintext flags in Realtime streams. Secret answers are never exposed to client bundles or browser dev tools.  
 ✦ **Real-time live scoreboard**: Instant rank shifts powered by Supabase Realtime PostgreSQL listeners with dynamic podium calculations and victory confetti.  
 ✦ **Isolated participant dashboards**: Clean distinction between "Hosted by You" and "Joined Competitions", providing pristine zero-states with no competitor data leakage.  
 ✦ **Cross-user session protection**: Strict client-state resets, user-scoped input keys, and autofill suppression prevent answer leakage between users on shared devices.  
@@ -95,10 +95,11 @@ npm install
 1. Go to your **[Supabase Dashboard](https://supabase.com/dashboard)** $\rightarrow$ **SQL Editor**.
 2. Open [`supabase/schema.sql`](./supabase/schema.sql) in this repository.
 3. Paste and run the entire script. This provisions:
-   - `profiles`, `events`, `questions`, and `submissions` tables
-   - Row Level Security (RLS) policies
+   - `profiles`, `events`, `event_pins`, `questions`, `submissions`, and `submission_logs` tables
+   - Sanitized `public_questions` view (excluding `correct_answer`)
+   - Strict Row Level Security (RLS) policies
    - Automatic user profile sync triggers on signup
-   - Realtime publication on the `submissions` table
+   - Safe Realtime publication on `submissions` and `events` tables
 
 ### 4. Configure Environment Variables
 Create a `.env.local` file in the root directory (or copy from `.env.example`):
