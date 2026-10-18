@@ -35,6 +35,7 @@ begin
   ) then
     insert into public.event_pins (event_id, pin_code)
     select id, pin_code from public.events
+    where pin_code is not null and trim(pin_code) != ''
     on conflict (event_id) do nothing;
     
     alter table public.events drop column if exists pin_code;
@@ -345,8 +346,24 @@ begin
 end;
 $$;
 
--- Enable Realtime for Submissions Table (Contains NO plaintext flags, 100% safe to stream)
-begin;
-  drop publication if exists supabase_realtime;
-  create publication supabase_realtime for table public.submissions, public.events;
-commit;
+-- Enable Realtime for Submissions & Events Table (Contains NO plaintext flags, 100% safe to stream)
+do $$
+begin
+  if not exists (select 1 from pg_publication where pubname = 'supabase_realtime') then
+    create publication supabase_realtime;
+  end if;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.submissions;
+exception when duplicate_object then
+  null;
+end $$;
+
+do $$
+begin
+  alter publication supabase_realtime add table public.events;
+exception when duplicate_object then
+  null;
+end $$;
